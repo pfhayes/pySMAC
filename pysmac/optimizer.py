@@ -17,7 +17,7 @@ from multiprocessing_wrapper import MyPool
 class SMAC_optimizer(object):
    
 	# collects smac specific data that goes into the scenario file
-	def __init__(self, deterministic = True, t_limit_total_s=0, mem_limit_smac_mb=None, working_directory = None, persistent_files=False, debug = False):
+	def __init__(self, deterministic = True, t_limit_total_s=None, mem_limit_smac_mb=None, working_directory = None, persistent_files=False, debug = False):
 		
 		self.__logger = multiprocessing.log_to_stderr()
 		if debug:
@@ -26,7 +26,7 @@ class SMAC_optimizer(object):
 			self.__logger.setLevel(logging.WARNING)
 		
 		
-		self.__t_limit_total_s = int(t_limit_total_s)
+		self.__t_limit_total_s = 0 if t_limit_total_s is None else int(t_limit_total_s)
 		self.__mem_limit_smac_mb = None if (mem_limit_smac_mb is None) else int(mem_limit_smac_mb)
 			
 		self.__persistent_files = persistent_files
@@ -173,7 +173,6 @@ class SMAC_optimizer(object):
 					pass
 		
 		run_incumbents.sort(key = operator.itemgetter(0))			
-		print run_incumbents
 		
 		conf_dict = {}
 		for c in run_incumbents[0][1]:
