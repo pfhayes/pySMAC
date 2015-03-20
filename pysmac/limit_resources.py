@@ -67,7 +67,13 @@ def subprocess_func(func, pipe, mem_in_mb, time_limit_in_s, num_procs = None, *a
 
 def enforce_limits (mem_in_mb=None, time_in_s=None, grace_period_in_s = 1):
     logger = multiprocessing.get_logger()
-    logger.debug("restricting your function to %i mb memory and %i seconds"%(mem_in_mb, time_in_s))
+    
+    if mem_in_mb is not None:
+        logger.debug("restricting your function to %i mb memory."%(mem_in_mb))
+    if time_in_s is not None:
+        logger.debug("restricting your function to %i seconds runtime."%(time_in_s))
+
+
 	
     def actual_decorator(func):
 
