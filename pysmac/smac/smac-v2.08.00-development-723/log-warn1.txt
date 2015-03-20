@@ -1,1 +1,0 @@
-18:00:17.196 [main] ERROR c.u.c.b.smac.executors.SMACExecutor - Message: Unknown option: -ueotnh
