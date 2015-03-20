@@ -1,7 +1,7 @@
 import types
 import sys
 import os
-
+import traceback
 import socket
 import subprocess
 from pkg_resources import resource_filename
@@ -146,13 +146,14 @@ class remote_smac(object):
 				self.__subprocess.kill()
 				self.__logger.debug('SMAC had to be terminated')
 			else:	
-				self.__logger.debug('SMAC terminated with returncode %i', self.__subprocess.returncode())
+				self.__logger.debug('SMAC terminated with returncode %i', self.__subprocess.returncode)
 
 
 	def next_configuration(self):
 		
 		while True:
 			try:
+				self.__logger.debug('trying to retrieve the next configuration from SMAC')
 				self.__sock.settimeout(self.udp_timeout)
 				self.__conn, addr = self.__sock.accept()
 				fconn = self.__conn.makefile('r') 
@@ -198,43 +199,48 @@ class remote_smac(object):
 
 def remote_smac_function(only_arg):
 	
-	scenario_file, seed, function, parser_dict, memory_limit_smac_mb, class_path, num_instances, mem_limit_function, t_limit_function = only_arg
+	try:
 	
-	logger = multiprocessing.get_logger()
+		scenario_file, seed, function, parser_dict, memory_limit_smac_mb, class_path, num_instances, mem_limit_function, t_limit_function = only_arg
 	
-	smac = remote_smac(scenario_file, seed, class_path, memory_limit_smac_mb,parser_dict)
+		logger = multiprocessing.get_logger()
 	
+		smac = remote_smac(scenario_file, seed, class_path, memory_limit_smac_mb,parser_dict)
 	
-	wrapped_function = limit_resources.enforce_limits(mem_in_mb=mem_limit_function, time_in_s=t_limit_function, grace_period_in_s = 1)(function)
+		logger.debug('Started SMAC subprocess')
 	
-	num_iterations = 0
+		wrapped_function = limit_resources.enforce_limits(mem_in_mb=mem_limit_function, time_in_s=t_limit_function, grace_period_in_s = 1)(function)
 	
-	while True:
-		config_dict = smac.next_configuration()
+		num_iterations = 0
+	
+		while True:
+			config_dict = smac.next_configuration()
 
-		# method next_configuration checks whether smac is still alive
-		# if it is None, it means that SMAC has finished (for whatever reason)
-		if config_dict is None:
-			break
+			# method next_configuration checks whether smac is still alive
+			# if it is None, it means that SMAC has finished (for whatever reason)
+			if config_dict is None:
+				break
 			
-		# delete the unused variables from the dict
-		if num_instances is None:
-			del config_dict['instance']
+			# delete the unused variables from the dict
+			if num_instances is None:
+				del config_dict['instance']
 			
-		del config_dict['instance_info']
-		del config_dict['cutoff_time']
-		del config_dict['cutoff_length']
-		del config_dict['seed']
+			del config_dict['instance_info']
+			del config_dict['cutoff_time']
+			del config_dict['cutoff_length']
+			del config_dict['seed']
 		
-		logger.debug('SMAC suggest the following configuration:\n%s'%(config_dict,))			
+			#logger.debug('SMAC suggest the following configuration:\n%s'%(config_dict,))			
 
-		# execute the function and measure the time it takes to evaluate
-		start = time.time()
-		res = wrapped_function(**config_dict)
-		runtime = time.time()-start
-		logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res), str(runtime)))
-		if runtime < t_limit_function:
-			smac.report_result(res, runtime, 'CRASHED')
-		else:
-			smac.report_result(res, runtime)
-		num_iterations += 1
+			# execute the function and measure the time it takes to evaluate
+			start = time.time()
+			res = wrapped_function(**config_dict)
+			runtime = time.time()-start
+			logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res), str(runtime)))
+			if runtime < t_limit_function:
+				smac.report_result(res, runtime, 'CRASHED')
+			else:
+				smac.report_result(res, runtime)
+			num_iterations += 1
+	except:
+		traceback.print_exc()
