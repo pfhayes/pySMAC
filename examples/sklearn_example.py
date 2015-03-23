@@ -14,8 +14,8 @@ import sklearn.cross_validation
 # the function loads it itself. Please refere to the python manual about the 
 # multiprocessing module for limitations. In the future, we might include additional
 # parameters to the function, but for now that is not possible.
-X,Y = sklearn.datasets.make_classification(1000, 20, random_state=23)		# seed yields a mediocre initial accuracy on my machine, 
-X_train, X_test, Y_train, Y_test = sklearn.cross_validation.train_test_split(X,Y, test_size=0.33)
+X,Y = sklearn.datasets.make_classification(1000, 20, random_state=2)		# seed yields a mediocre initial accuracy on my machine
+X_train, X_test, Y_train, Y_test = sklearn.cross_validation.train_test_split(X,Y, test_size=0.33, random_state=1)
 
 
 
@@ -50,7 +50,7 @@ parameter_definition=dict(\
 
 # Now we create the optimizer object again. This time with some parameters
 opt = pysmac.SMAC_optimizer( working_directory = '/tmp/pysmac_test/',# the folder where SMAC generates output
-							 persistent_files=True,					 # whether the output will persist beyond the python objects lifetime
+							 persistent_files=False,				 # whether the output will persist beyond the python object's lifetime
 							 debug = False							 # if something goes wrong, enable this for diagnostic output
 							)
 
@@ -65,10 +65,10 @@ print('The default accuracy is %f'%predictor.score(X_test, Y_test))
 
 # The minimize method also has optional arguments
 value, parameters = opt.minimize(random_forest,
-					1000 , parameter_definition,
-					num_runs = 4,					# number of independent SMAC runs
-					seed = 42,						# the random seed used. can be an int or a list of ints of length num_runs
-					num_procs = 4,					# pySMAC can harness multicore architecture. Specify the number of processes to use here.
+					100 , parameter_definition,		# in a real setting, you probably want to do more than 100 evaluations here
+					num_runs = 2,					# number of independent SMAC runs
+					seed = 2,						# the random seed used. can be an int or a list of ints of length num_runs
+					num_procs = 2,					# pySMAC can harness multicore architecture. Specify the number of processes to use here.
 					mem_limit_function_mb=1000,		# There are a build-in mechanisms to limit the resources available to each function call:
 					t_limit_function_s = 20			# 	You can limit the memory available and the wallclock time for each function call
 					)
