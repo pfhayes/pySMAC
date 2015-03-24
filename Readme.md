@@ -15,9 +15,7 @@ Installation
 To install pysmac, we advise using the Python package management system:
 
 ```
-
 pip install git+https://github.com/sfalkner/pysmac.git --user
-
 ```
 If you prefer, you can clone the repository and install it manually via
 ```
