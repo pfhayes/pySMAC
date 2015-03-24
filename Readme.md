@@ -45,8 +45,8 @@ def sum_of_squares(x1, x2):
 opt = pysmac.SMAC_optimizer()
 
 parameter_definition=dict(\
-		x1=( [-5, 5],  1),			# this line means x1 is a float between -5 and 5, inital guess is 1
-		x2=( [-5, 5], -1),	# same as x1, but the initial value is -1
+		x1=( [-5, 5],  1), # this line means x1 is a float between -5 and 5, inital guess is 1
+		x2=( [-5, 5], -1), # same as x1, but the initial value is -1
 		)
 
 value, parameters = opt.minimize(sum_of_squares		# the function to be minimized
