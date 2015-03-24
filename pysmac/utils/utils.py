@@ -45,12 +45,11 @@ def read_pcs(filename):
 				default = float(float_match.group("default"))
 				
 				#logging.debug("PARAMETER: %s %f [%s] (%s)" %(name, default, ",".join(map(str, values)), type_))
-				#TODO: list instead of tuple???
-				param_dict[name] = [values, default]					
+				param_dict[name] = (values, default)
 				if "i" in float_match.group("misc"):
-					param_dict[name].append("int")
+					param_dict[name] += ('int',)
 				if "l" in float_match.group("misc"):
-					param_dict[name].append("log")
+					param_dict[name] += ('log',)
 				
 			cond_match = COND_REGEX.match(line)
 			if cond_match:
