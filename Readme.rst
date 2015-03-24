@@ -15,13 +15,17 @@ Installation
 To install pysmac, we advise using the Python package management system:
 
 ```
-        pip install git+https://github.com/sfalkner/pysmac.git --user
+
+pip install git+https://github.com/sfalkner/pysmac.git --user
+
 ```
 
 If you prefer, you can clone the repository and install it manually via
 
 ```
+
 python setup.py install
+
 ```
 
 
@@ -32,6 +36,7 @@ One main focus of this project is to offer a very simple interface to novice use
 we also strive to provide more advanced users access to (almost) all parameters and advanced functionality that SMAC has to offer. A very simple example could be
 
 ```python
+
 import pysmac
 
 def sum_of_squares(x1, x2):
@@ -49,6 +54,7 @@ value, parameters = opt.minimize(sum_of_squares		# the function to be minimized
 					, parameter_definition)			# the parameter dictionary
 
 print('The minimum value %f was found for the configurations %s'%(value, parameters))
+
 ```
 
 It highlights the four steps involved in using pySMAC:
