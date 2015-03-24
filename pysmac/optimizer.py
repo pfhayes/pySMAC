@@ -148,7 +148,7 @@ class SMAC_optimizer(object):
 
 		# create a pool of workers and make'em work
 		pool = MyPool(num_procs)
-		argument_lists = map(lambda s: [scenario_fn, s, func, parser_dict, self.__mem_limit_smac_mb, remote_smac.smac_classpath(),  num_instances, mem_limit_function_mb, t_limit_function_s], seed)
+		argument_lists = map(lambda s: [scenario_fn, s, func, parser_dict, self.__mem_limit_smac_mb, remote_smac.smac_classpath(),  num_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic']], seed)
 		
 		pool.map(remote_smac.remote_smac_function, argument_lists)
 		

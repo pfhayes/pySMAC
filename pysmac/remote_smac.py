@@ -188,8 +188,13 @@ class remote_smac(object):
 		return (config_dict)
 	
 	def report_result(self, value, runtime, status = 'TIMEOUT'):
+		# value is only None, if the function call was unsuccessful
 		if value is None:
 			string = 'Result for ParamILS: %s, %f, 0, 0, 0'%(status,runtime)
+		# for fancy stuff, the function can return a dict with 'status' and 'quality' keys
+		elif isinstance(value, dict):
+			string = 'Result for ParamILS: %s, %f, 0, %s, 0'%(value['status'],runtime, value['quality'])
+		# in all other cases, it should be a float
 		else:
 			string = 'Result for ParamILS: SAT, %f, 0, %s, 0'%(runtime, str(value))
 		self.__conn.sendall(string)
@@ -201,7 +206,7 @@ def remote_smac_function(only_arg):
 	
 	try:
 	
-		scenario_file, seed, function, parser_dict, memory_limit_smac_mb, class_path, num_instances, mem_limit_function, t_limit_function = only_arg
+		scenario_file, seed, function, parser_dict, memory_limit_smac_mb, class_path, num_instances, mem_limit_function, t_limit_function, deterministic = only_arg
 	
 		logger = multiprocessing.get_logger()
 	
@@ -228,7 +233,8 @@ def remote_smac_function(only_arg):
 			del config_dict['instance_info']
 			del config_dict['cutoff_time']
 			del config_dict['cutoff_length']
-			del config_dict['seed']
+			if deterministic:
+				del config_dict['seed']
 		
 			#logger.debug('SMAC suggest the following configuration:\n%s'%(config_dict,))			
 
