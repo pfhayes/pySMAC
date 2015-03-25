@@ -36,8 +36,8 @@ def subprocess_func(func, pipe, mem_in_mb, time_limit_in_s, num_procs = None, *a
     # simple signal handler to return 'None' if one of the signals is caught
     def handler(signum, frame):
         logger.info("received signal number %i. Exiting not cracefully."%signum)
-        pipe_conn.send(None)
-        pipe_conn.close();
+        pipe.send(None)
+        pipe.close();
         exit(1);
 
     signal.signal( signal.SIGALRM, handler)
