@@ -9,7 +9,7 @@ import csv
 
 
 
-import limit_resources
+#import utils.limit_resources
 import remote_smac
 from multiprocessing_wrapper import MyPool
 
@@ -68,7 +68,7 @@ class SMAC_optimizer(object):
 			'algo-exec': 'echo 0',
 			'run-obj': 'QUALITY',
 			'algo-deterministic': deterministic,
-			'validation': not deterministic,
+			'validation': False,
 			'cutoff_time': 3600,
 			'intensification-percentage': 0.5,
 			'num-pca': 7,
@@ -77,7 +77,6 @@ class SMAC_optimizer(object):
 			'rf-num-trees': 10,
 			'skip-features': True,
 			'pcs-file': os.path.join(self.working_directory,'parameters.pcs'),
-			'test-instances': os.path.join(self.working_directory ,'instances.dat'),
 			'instances': os.path.join(self.working_directory ,'instances.dat'),
 			'algo-exec-dir': self.working_directory,
 			'output-dir': self.__out_dir,
@@ -86,6 +85,7 @@ class SMAC_optimizer(object):
 			}
 		if debug:
 			self.smac_options['console-log-level']='INFO'
+
 
 	# after SMAC finishes, some cleanup has to be done depending on persistent_files
 	def __del__(self):
@@ -97,11 +97,13 @@ class SMAC_optimizer(object):
 	# conditionals and forbidden clauses
 	def minimize(self, func, max_evaluations, parameter_dict, 
 			conditional_clauses = [], forbidden_clauses=[], 
-			num_instances = None,  seed = None,  num_procs = 1, num_runs = 1,
+			num_instances = None, num_test_instances = None,
+			seed = None,  num_procs = 1, num_runs = 1,
 			mem_limit_function_mb=None, t_limit_function_s= None):
 		
 		
 		num_instances = None if (num_instances is None) else int(num_instances)
+		
 		if ((num_instances < 1) and (num_instances is not None)):
 			raise ValueError('The number of instances must be positive!')
 
@@ -124,17 +126,28 @@ class SMAC_optimizer(object):
 		
 		
 		self.smac_options['runcount-limit'] = max_evaluations
+		if t_limit_function_s is not None:
+			self.smac_options['cutoff_time'] = t_limit_function_s
+		
 		
 		# create and fill the pcs file
 		with open(self.smac_options['pcs-file'], 'w') as fh:
 			fh.write("\n".join(pcs_string + conditional_clauses + forbidden_clauses))
 		
-		#create and fill the instance file
+		#create and fill the instance files
+		tmp_num_instances = 1 if num_instances is None else num_instances
 		with open(self.smac_options['instances'], 'w') as fh:
-			tmp_num_instances = 1 if num_instances is None else num_instances
 			for i in range(tmp_num_instances):
 				fh.write("id_%i\n"%i)
-
+		
+		if num_test_instances is not None:
+			self.smac_options['validate-only-last-incumbent'] = True
+			self.smac_options['validation'] = True
+			self.smac_options['test-instances'] = os.path.join(self.working_directory, 'test_instances.dat')
+			with open(self.smac_options['test-instances'],'w') as fh:
+				for i in range(tmp_num_instances, tmp_num_instances + num_test_instances):
+					fh.write("id_%i\n"%i)
+		
 		# create and fill the scenario file
 		scenario_fn = os.path.join(self.working_directory,'scenario.dat')
 		with open(scenario_fn,'w') as fh:

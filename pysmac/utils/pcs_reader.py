@@ -35,7 +35,6 @@ def read_pcs(filename):
 				default = cat_match.group("default")
 				
 				#logging.debug("CATEGORIAL: %s %s {%s} (%s)" %(name, default, ",".join(map(str, values)), type_))
-				#TODO: type of "values"???
 				param_dict[name] = (values, default) 
 				
 			float_match = FLOAT_REGEX.match(line)

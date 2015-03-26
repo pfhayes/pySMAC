@@ -5,12 +5,13 @@ import traceback
 import socket
 import subprocess
 from pkg_resources import resource_filename
+from math import ceil
 
 import logging
 import multiprocessing
 
 import time
-import limit_resources
+import utils.limit_resources
 
 
 SMAC_VERSION = "smac-v2.08.00-master-731"
@@ -168,11 +169,11 @@ class remote_smac(object):
 				else:
 					self.__logger.debug("SMAC has not responded yet, but is still alive. Will keep waiting!")
 
-
+		self.__logger.debug("SMAC message: %s"%config_str)
+		
 		los = config_str.replace('\'','').split() # name is shorthand for 'list of strings'
 		config_dict={}
 
-		self.__logger.debug("SMAC message: %s"%los)
 				
 		config_dict['instance']      = int(los[0][3:])
 		config_dict['instance_info'] = str(los[1])
@@ -214,8 +215,6 @@ def remote_smac_function(only_arg):
 	
 		logger.debug('Started SMAC subprocess')
 	
-		wrapped_function = limit_resources.enforce_limits(mem_in_mb=mem_limit_function, time_in_s=t_limit_function, grace_period_in_s = 1)(function)
-	
 		num_iterations = 0
 	
 		while True:
@@ -231,19 +230,21 @@ def remote_smac_function(only_arg):
 				del config_dict['instance']
 			
 			del config_dict['instance_info']
-			del config_dict['cutoff_time']
 			del config_dict['cutoff_length']
 			if deterministic:
 				del config_dict['seed']
 		
-			#logger.debug('SMAC suggest the following configuration:\n%s'%(config_dict,))			
+			current_t_limit = int(ceil(config_dict.pop('cutoff_time')))
+		
+			#logger.debug('SMAC suggest the following configuration:\n%s'%(config_dict,))
 
 			# execute the function and measure the time it takes to evaluate
+			wrapped_function = utils.limit_resources.enforce_limits(mem_in_mb=mem_limit_function, time_in_s=current_t_limit, grace_period_in_s = 1)(function)
 			start = time.time()
 			res = wrapped_function(**config_dict)
 			runtime = time.time()-start
 			logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res), str(runtime)))
-			if runtime < t_limit_function:
+			if runtime < current_t_limit:
 				smac.report_result(res, runtime, 'CRASHED')
 			else:
 				smac.report_result(res, runtime)
