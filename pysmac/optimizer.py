@@ -45,6 +45,8 @@ class SMAC_optimizer(object):
 		else:
 			self.working_directory = working_directory
 		
+		self.__logger.debug('Writing output into: %s'%self.working_directory)
+		
 		# make some subdirs for output and smac internals
 		self.__exec_dir = os.path.join(self.working_directory, 'exec')
 		self.__out_dir  = os.path.join(self.working_directory, 'out' )
@@ -109,7 +111,6 @@ class SMAC_optimizer(object):
 		num_procs = int(num_procs)
 		pcs_string, parser_dict = remote_smac.process_parameter_definitions(parameter_dict)
 
-
 		# adjust the seed variable
 		if seed is None:
 			seed = range(num_runs)
@@ -146,7 +147,7 @@ class SMAC_optimizer(object):
 			with open(self.smac_options['test-instances'],'w') as fh:
 				for i in range(tmp_num_instances, tmp_num_instances + num_test_instances):
 					fh.write("id_%i\n"%i)
-		
+
 		# create and fill the scenario file
 		scenario_fn = os.path.join(self.working_directory,'scenario.dat')
 		with open(scenario_fn,'w') as fh:

@@ -37,8 +37,9 @@ def subprocess_func(func, pipe, mem_in_mb, time_limit_in_s, num_procs = None, *a
 
     # simple signal handler to return 'None' if one of the signals is caught
     def handler(signum, frame):
-        logger.info("received signal number %i. Exiting not cracefully."%signum)
+        logger.info("received signal number %i. Exiting uncracefully."%signum)
         pipe.close()
+        exit(1)
 
     signal.signal( signal.SIGALRM, handler)
     signal.signal( signal.SIGTERM, handler)
@@ -104,7 +105,9 @@ def enforce_limits (mem_in_mb=None, time_in_s=None, grace_period_in_s = 1):
                 subproc.join()
             logger.debug("Your function has returned now with exit code %i."%subproc.exitcode)
 
-            # TODO: Catch a out of memory by inspecting the return code!
+			# if something went wrong, 
+            if subproc.exitcode != 0:
+                return(None)
 
             # return the function value from the pipe
             return (parent_conn.recv());
