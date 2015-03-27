@@ -9,9 +9,8 @@ import csv
 
 
 
-#import utils.limit_resources
 import remote_smac
-from multiprocessing_wrapper import MyPool
+from utils.multiprocessing_wrapper import MyPool
 
 
 class SMAC_optimizer(object):

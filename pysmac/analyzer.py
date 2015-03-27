@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as pltcm
 from matplotlib.widgets import CheckButtons
-import mpldatacursor
+
 
 
 # taken from 
@@ -35,11 +35,23 @@ def json_parse(fileobj, decoder=json.JSONDecoder(), buffersize=2048):
 class interactive_plot(object):
 
 	def __init__(self):
+		
+		try:
+			import mpldatacursor
+			self.datacursor = True
+		except:
+			self.datacursor = False
+		
 		self.fig, self.ax = plt.subplots()
 		self.datasets = []
 		self.dataset_ids = []
 
 	def add_datacursor(self, **kwargs):
+		
+		if not self.datacursor:
+			print("Please install mpldatacursor if you want to have advanced interactive capabilities.")
+			return()
+		
 		dict1 = dict(
 				bbox=dict(alpha=1),
 				formatter = 'iteration {x:.0f}: {y}\n{label}'.format,
