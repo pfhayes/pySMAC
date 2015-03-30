@@ -168,9 +168,9 @@ class SMAC_optimizer(object):
 		pool.close()
 		pool.join()
 		
-		
 			
 		# find overall incumbent and return it
+		
 		scenario_dir = os.path.join(self.__out_dir,reduce(str, scenario_fn.split('/')[-1].split('.')[:-1]))
 		
 		run_incumbents = []

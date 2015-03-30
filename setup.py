@@ -21,7 +21,7 @@ def check_java_version():
     java_version = int(m.group(1))
     if java_version < 7:
         error_msg = "Found Java version %d, but Java version 7 or greater is required." % java_version
- 
+
         raise RuntimeError(error_msg)
 
 def check_java_exists():
@@ -46,7 +46,8 @@ setup(
     name = "pysmac",
     version = "0.9",
     packages = find_packages(),
-    install_requires = ['docutils>=0.3', 'setuptools'],
+    install_requires = ['docutils>=0.3', 'setuptools', 'numpy', 'matplotlib'],
+    extras_require = {'interactive_plots': 'git+https://github.com/joferkington/mpldatacursor.git'},
     author = "Stefan Falkner and Tobias Domhan (python wrapper). Frank Hutter, Holger Hoos, Kevin Leyton-Brown, Kevin Murphy and Steve Ramage (SMAC)",
     author_email = "sfalkner@informatik.uni-freiburg.de",
     description = "python interface to the hyperparameter optimization tool SMAC.",

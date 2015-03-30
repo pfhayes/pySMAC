@@ -126,6 +126,9 @@ class SMAC_analyzer(object):
 				
 				if strlist[0] == 'output-dir':
 					self.output_dir = strlist[1]
+				
+				if strlist[0] == 'validation':
+					self.validation = bool(strlist[1])
 		
 		# construct the folder name that contains all the run files
 		self.scenario_dir = os.path.join(self.output_dir,reduce(str, scenario_fn.split('/')[-1].split('.')[:-1]))
@@ -229,9 +232,6 @@ class SMAC_analyzer(object):
 
 
 
-'''
-analyzer = SMAC_analyzer('/home/sfalkner/bitbucket/pysmac2/test/scenario.dat')
 
-#~ #analyzer.plot_run_performance()
-analyzer.plot_run_incumbent()
-'''
+analyzer = SMAC_analyzer('/tmp/pysmac_test/scenario.dat')
+
