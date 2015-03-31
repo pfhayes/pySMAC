@@ -188,7 +188,7 @@ class remote_smac(object):
 		self.__logger.debug("Our interpretation: %s"%config_dict)
 		return (config_dict)
 	
-	def report_result(self, value, runtime, status = 'TIMEOUT'):
+	def report_result(self, value, runtime, status = 'CRASHED'):
 		# value is only None, if the function call was unsuccessful
 		if value is None:
 			string = 'Result for ParamILS: %s, %f, 0, 0, 0'%(status,runtime)
@@ -245,8 +245,8 @@ def remote_smac_function(only_arg):
 			runtime = time.time()-start
 			logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res), str(runtime)))
 			print res, runtime, current_t_limit
-			if runtime < current_t_limit:
-				smac.report_result(res, runtime, 'CRASHED')
+			if runtime > current_t_limit:
+				smac.report_result(res, runtime, 'TIMEOUT')
 			else:
 				smac.report_result(res, runtime)
 			num_iterations += 1
