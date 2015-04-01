@@ -244,7 +244,6 @@ def remote_smac_function(only_arg):
 			res = wrapped_function(**config_dict)
 			runtime = time.time()-start
 			logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res), str(runtime)))
-			print res, runtime, current_t_limit
 			if runtime > current_t_limit:
 				smac.report_result(res, runtime, 'TIMEOUT')
 			else:
