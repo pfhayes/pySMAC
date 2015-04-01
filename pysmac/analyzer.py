@@ -233,5 +233,5 @@ class SMAC_analyzer(object):
 
 
 if __name__ == "__main__":
-	analyzer = SMAC_analyzer('/tmp/pysmac_test/scenario.dat')
+	analyzer = SMAC_analyzer('/home/sfalkner/bitbucket/pysmac2/spysmac_on_minisat/scenario.dat')
 
