@@ -47,16 +47,16 @@ def subprocess_func(func, pipe, mem_in_mb, time_limit_in_s, num_procs = None, *a
 
     # the actual function call
     try:
-        logger.warning('call to your function')
+        logger.debug('call to your function')
         return_value = func(*args, **kwargs)
-        logger.warning('function returned %s'%str(return_value))
+        logger.debug('function returned %s'%str(return_value))
 
     except MemoryError:
         logger.warning("Function call with the arguments %s, %s has exceeded the memory limit!"%(args,kwargs))
 
     except OSError as e:
         if (e.errno == 11):
-            logger.waring("Your function tries to spanwn too many subprocesses/threads.")
+            logger.waring("Your function tries to spawn too many subprocesses/threads.")
         else:
             logger.warning('Something fishy going on here!')
             raise;
@@ -65,7 +65,7 @@ def subprocess_func(func, pipe, mem_in_mb, time_limit_in_s, num_procs = None, *a
         logger.warning('Your function call was aborted. It probably took too long.')
 
     except:
-        logger.warning('The call to your function did not return properly!\n%s\n%s', args, kwargs)
+        logger.debug('The call to your function did not return properly!\n%s\n%s', args, kwargs)
         raise;
 
     finally:
@@ -100,7 +100,7 @@ def enforce_limits (mem_in_mb=None, time_in_s=None, grace_period_in_s = 1):
 
                 # if it is still alive, send sigterm
                 if subproc.is_alive():
-                    logger.warning("Your function took to long, killing it now.")
+                    logger.debug("Your function took to long, killing it now.")
                     #subproc.terminate()
                     
                     os.killpg(os.getpgid(subproc.pid),15)
