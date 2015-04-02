@@ -20,14 +20,19 @@ def json_parse(fileobj, decoder=json.JSONDecoder(), buffersize=2048):
 				break
 
 
-def map_run_result(res):
-	if 'SAT' in res:	return(1)
-	if 'UNSAT' in res:	return(0)
-	return(float('NaN'))
+
 
 def read_run_and_results_file(fn):
+	
+	# to convert everything into floats, the run result needs to be mapped
+	def map_run_result(res):
+		if 'SAT' in res:	return(1)
+		if 'UNSAT' in res:	return(0)
+		if 'TIMEOUT' in res:return(-1) 
+		return(-2)	# covers ABORT, CRASHED, but that shouldn't happen
+	
 	return(np.loadtxt(fn, skiprows=1, delimiter=',',
-		usecols = range(14)+[15], # skip empty 'algorithm run data' column
+		usecols = range(1,14)+[15], # skip empty 'algorithm run data' column
 		converters={13:map_run_result}))
 
 
@@ -47,4 +52,10 @@ def read_paramstrings_file(fn):
 
 if __name__ == "__main__":
 	print read_paramstrings_file('/home/sfalkner/bitbucket/pysmac2/spysmac_on_minisat/out/scenario/state-run1/paramstrings-it430.txt')
+	bla = read_run_and_results_file('/home/sfalkner/bitbucket/pysmac2/spysmac_on_minisat/out/scenario/state-run2/runs_and_results-it205.csv')
+	
+	import matplotlib.pyplot as plt
+	
+	plt.hist(bla[:,6])
+	plt.show()
 
