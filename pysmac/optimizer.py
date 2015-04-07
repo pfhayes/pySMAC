@@ -72,7 +72,7 @@ class SMAC_optimizer(object):
 			'validation': False,
 			'cutoff_time': 3600,
 			'intensification-percentage': 0.5,
-			'num-pca': 7,
+			'numPCA': 7,
 			'rf-full-tree-bootstrap': False,
 			'rf-ignore-conditionality':False,
 			'rf-num-trees': 10,
@@ -165,28 +165,26 @@ class SMAC_optimizer(object):
 							'feature-file', 'instanceFeatureFile', 'feature_file'
 							}
 		
-		all_options_fn =scenario_fn[:-4]+'.advanced' 
-		with open(scenario_fn,'w') as fh, open(all_options_fn, 'w') as fg:
+		additional_options_fn =scenario_fn[:-4]+'.advanced' 
+		with open(scenario_fn,'w') as fh, open(additional_options_fn, 'w') as fg:
 			for name, value in self.smac_options.iteritems():
 				if name in scenario_options:
 					fh.write('%s %s\n'%(name, value))
-				fg.write('%s %s\n'%(name,value))
+				else:
+					fg.write('%s %s\n'%(name,value))
 		
 		# check that all files are actually present, so SMAC has everything to start
-		assert all(map(os.path.exists, [all_options_fn, self.smac_options['pcs-file'], self.smac_options['instances']])), "Something went wrong creating files for SMAC! Try to specify a \'working_directory\' and set \'persistent_files=True\'."
-		
-
+		assert all(map(os.path.exists, [additional_options_fn, scenario_fn, self.smac_options['pcs-file'], self.smac_options['instances']])), "Something went wrong creating files for SMAC! Try to specify a \'working_directory\' and set \'persistent_files=True\'."
 
 		# create a pool of workers and make'em work
 		pool = MyPool(num_procs)
-		argument_lists = map(lambda s: [all_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, remote_smac.smac_classpath(),  num_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic']], seed)
+		argument_lists = map(lambda s: [scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, remote_smac.smac_classpath(),  num_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic']], seed)
 		
 		pool.map(remote_smac.remote_smac_function, argument_lists)
 		
 		pool.close()
 		pool.join()
 		
-			
 		# find overall incumbent and return it
 		
 		scenario_dir = os.path.join(self.__out_dir,reduce(str, scenario_fn.split('/')[-1].split('.')[:-1]))

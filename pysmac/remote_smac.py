@@ -101,7 +101,7 @@ class remote_smac(object):
 	udp_timeout=1
 	
 	# Starts SMAC in IPC mode. SMAC will wait for udp messages to be sent.
-	def __init__(self, scenario_fn, seed, class_path, memory_limit, parser_dict):
+	def __init__(self, scenario_fn, additional_options_fn, seed, class_path, memory_limit, parser_dict):
 		self.__parser = parser_dict
 		self.__subprocess = None
 		self.__logger = multiprocessing.get_logger()
@@ -129,6 +129,13 @@ class remote_smac(object):
 				"--ipc-remote-port", str(self.__port),
 				"--seed", str(seed)
 				]
+		
+		with open(additional_options_fn, 'r') as fh:
+			for line in fh:
+				name, value = line.strip().split(' ')
+				cmds += ['--%s'%name, '%s'%value]
+		
+		self.__logger.debug("SMAC command: %s"%(' '.join(cmds)))
 		
 		self.__logger.debug("Starting SMAC in ICP mode")
 		
@@ -207,11 +214,11 @@ def remote_smac_function(only_arg):
 	
 	try:
 	
-		scenario_file, seed, function, parser_dict, memory_limit_smac_mb, class_path, num_instances, mem_limit_function, t_limit_function, deterministic = only_arg
+		scenario_file, additional_options_fn, seed, function, parser_dict, memory_limit_smac_mb, class_path, num_instances, mem_limit_function, t_limit_function, deterministic = only_arg
 	
 		logger = multiprocessing.get_logger()
 	
-		smac = remote_smac(scenario_file, seed, class_path, memory_limit_smac_mb,parser_dict)
+		smac = remote_smac(scenario_file, additional_options_fn, seed, class_path, memory_limit_smac_mb,parser_dict)
 	
 		logger.debug('Started SMAC subprocess')
 	
