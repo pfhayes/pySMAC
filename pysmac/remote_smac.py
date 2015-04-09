@@ -19,9 +19,9 @@ import pysmac.utils.limit_resources
 SMAC_VERSION = "smac-v2.08.00-master-731"
 
 try:
-    str=unicode  #Python 2 backward compatibility
+    str=unicode #Python 2 backward compatibility
 except NameError:
-    pass        #Python.3 case
+    pass        #Python 3 case
 
 
 # takes a name and a tuple defining one parameter, registers that with the parser
@@ -208,17 +208,16 @@ class remote_smac(object):
     def report_result(self, value, runtime, status = 'CRASHED'):
         # value is only None, if the function call was unsuccessful
         if value is None:
-            string = 'Result for ParamILS: %a, %f, 0, 0, 0'%(status,runtime)
+            s = u'Result for ParamILS: {}, {}, 0, 0, 0'.format(status,runtime)
         # for fancy stuff, the function can return a dict with 'status' and 'quality' keys
         elif isinstance(value, dict):
-            string = 'Result for ParamILS: %s, %f, 0, %s, 0'%(value['status'].decode('ascii'),runtime, value['quality'])
+            s = u'Result for ParamILS: {}, {}, 0, {}, 0'.format(value['status'].decode('ascii'),runtime, value['quality'])
             print(value['status'], runtime,value['quality'])
         # in all other cases, it should be a float
         else:
-            string = 'Result for ParamILS: SAT, %f, 0, %s, 0'%(runtime, value)
-        print(string)
-        print(bytes(string,'utf-8'))
-        self.__conn.sendall(bytes(string,'utf-8'))
+            s = u'Result for ParamILS: SAT, {}, 0, {}, 0'.format(runtime, value)
+        print(s)
+        self.__conn.sendall(s.encode())
         self.__conn.close();
 
 
