@@ -4,7 +4,6 @@ import six
 import json
 import functools
 import re
-import remote_smac
 import operator
 
 import numpy as np
@@ -12,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as pltcm
 from matplotlib.widgets import CheckButtons
 
+from . import remote_smac
 
 
 # taken from 
@@ -186,15 +186,15 @@ class SMAC_analyzer(object):
 			y = np.minimum.accumulate(self.get_item_single_run(i))
 			#x = 
 			_ , indices = np.unique(y, return_index = True)
-			print indices
+			print(indices)
 			
 			indices = np.append(indices[::-1], len(y)-1)
-			print indices
+			print(indices)
 			x = np.arange(len(y))[indices]
 			y = y[indices]
 			
-			print x,y
-			print '='*40
+			print(x,y)
+			print('='*40)
 			plot.step(self.data_all_runs[i][0], x, y, color = self.cm[i])
 		
 		plot.add_datacursor(formatter = 'iteration {x:.0f}: {y}'.format)
