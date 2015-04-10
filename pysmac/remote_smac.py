@@ -205,17 +205,25 @@ class remote_smac(object):
         self.__logger.debug("Our interpretation: %s"%config_dict)
         return (config_dict)
     
-    def report_result(self, value, runtime, status = 'CRASHED'):
+    def report_result(self, value, runtime, status = b'CRASHED'):
+        print(runtime)
+        tmp ={'status': status, 'runtime': runtime}
+        
         # value is only None, if the function call was unsuccessful
         if value is None:
-            s = u'Result for ParamILS: {}, {}, 0, 0, 0'.format(status,runtime)
-        # for fancy stuff, the function can return a dict with 'status' and 'quality' keys
+            tmp['value'] = 0
+        # for fancy stuff, the function can return a dict with 'status',
+        # 'runtime',  and 'value' keys (does not have to provide all, though)
         elif isinstance(value, dict):
-            s = u'Result for ParamILS: {}, {}, 0, {}, 0'.format(value['status'].decode('ascii'),runtime, value['quality'])
-            print(value['status'], runtime,value['quality'])
+            tmp.update(value)
         # in all other cases, it should be a float
         else:
-            s = u'Result for ParamILS: SAT, {}, 0, {}, 0'.format(runtime, value)
+            tmp['value'] = value
+        
+        # for propper printing, we have to convert the status into unicode
+        tmp['status'] = tmp['status'].decode()
+        s = u'Result for ParamILS: {0[status]}, {0[runtime]}, 0, {0[value]}, 0\
+            '.format(tmp)
         print(s)
         self.__conn.sendall(s.encode())
         self.__conn.close();
@@ -226,7 +234,9 @@ def remote_smac_function(only_arg):
     
     try:
     
-        scenario_file, additional_options_fn, seed, function, parser_dict, memory_limit_smac_mb, class_path, num_instances, mem_limit_function, t_limit_function, deterministic = only_arg
+        scenario_file, additional_options_fn, seed, function, parser_dict,\
+          memory_limit_smac_mb, class_path, num_instances, mem_limit_function,\
+          t_limit_function, deterministic = only_arg
     
         logger = multiprocessing.get_logger()
     
@@ -264,7 +274,7 @@ def remote_smac_function(only_arg):
             runtime = time.time()-start
             logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res), str(runtime)))
             if runtime > current_t_limit:
-                smac.report_result(res, runtime, 'TIMEOUT')
+                smac.report_result(res, runtime, b'TIMEOUT')
             else:
                 smac.report_result(res, runtime)
             num_iterations += 1
