@@ -1,5 +1,5 @@
-from .optimizer import *
-from .analyzer import *
+from . import optimizer
+#from . import analyzer
 
 
 
@@ -9,7 +9,6 @@ def check_java_version():
     import re
     from subprocess import STDOUT, check_output
     out = check_output(["java", "-version"], stderr=STDOUT).strip().split(b"\n")
-    print(out)
     if len(out) < 1:
         print("Failed checking Java version. Make sure Java version 7 or greater is installed.")
         return False
