@@ -78,25 +78,25 @@ class SMAC_analyzer(object):
 		# for now, we only load the incumbents for each run
 		
 		for i in self.data.keys():
-			# with test instances, the validation runs are loaded
-			if self.validation:
-				configs = smac_readers.read_validationCallStrings_file(
-					os.path.join(self.scenario_output_dir,
-						"validationCallStrings-traj-run-{}-walltime.csv".format(i)))
-				test_performances = smac_readers.read_validationObjectiveMatrix_file(
-					os.path.join(self.scenario_output_dir,
-						"validationObjectiveMatrix-traj-run-{}-walltime.csv".format(i)))
-						
-				print(configs)
-				print(test_performances)
+			try:
+				# with test instances, the validation runs are loaded
+				if self.validation:
+					configs = smac_readers.read_validationCallStrings_file(
+						os.path.join(self.scenario_output_dir,
+							"validationCallStrings-traj-run-{}-walltime.csv".format(i)))
+					test_performances = smac_readers.read_validationObjectiveMatrix_file(
+						os.path.join(self.scenario_output_dir,
+							"validationObjectiveMatrix-traj-run-{}-walltime.csv".format(i)))
 			
-			# without validation, there are only trajectory files to pase
-			else:
-				raise NotImplemented("The handling of cases without validation runs is not yet implemented")
-				pass
-			self.data[i]['parameters'] = configs
-			self.data[i]['test_performances'] = test_performances
-
+				# without validation, there are only trajectory files to pase
+				else:
+					raise NotImplemented("The handling of cases without validation runs is not yet implemented")
+					pass
+				self.data[i]['parameters'] = configs
+				self.data[i]['test_performances'] = test_performances
+			except:
+				print("Failed to load data for run {}. Please make sure it has finished properly.\nDropping it for now.".format(i))
+				self.data.pop(i)
 
 	def get_pyfanova_obj(self):
 		try:
