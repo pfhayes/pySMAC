@@ -19,7 +19,7 @@ def subprocess_func(func, pipe, mem_in_mb, time_limit_in_s, num_procs = None, *a
     def handler(signum, frame):
         logger.debug("received signal number %i. Exiting uncracefully."%signum)
         raise abort_function
-	
+    
 
     # set the memory limit
     if mem_in_mb is not None:
@@ -81,7 +81,7 @@ def enforce_limits (mem_in_mb=None, time_in_s=None, grace_period_in_s = 1):
         logger.debug("restricting your function to %i seconds runtime."%(time_in_s))
 
 
-	
+    
     def actual_decorator(func):
 
         def wrapped_function(*args, **kwargs):
@@ -103,17 +103,17 @@ def enforce_limits (mem_in_mb=None, time_in_s=None, grace_period_in_s = 1):
                     logger.debug("Your function took to long, killing it now.")
                     #subproc.terminate()
                     try:
-						os.killpg(os.getpgid(subproc.pid),15)
-					except:
-						logger.warning("Killing the function call failed. It probably finished already.")
-					finally:
-						subproc.join()
-						return(None)
+                        os.killpg(os.getpgid(subproc.pid),15)
+                    except:
+                        logger.warning("Killing the function call failed. It probably finished already.")
+                    finally:
+                        subproc.join()
+                        return(None)
             else:
                 subproc.join()
             logger.debug("Your function has returned now with exit code %i."%subproc.exitcode)
 
-			# if something went wrong, 
+            # if something went wrong, 
             if subproc.exitcode != 0:
                 return(None)
 
