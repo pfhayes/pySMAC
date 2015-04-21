@@ -56,7 +56,7 @@ def subprocess_func(func, pipe, mem_in_mb, time_limit_in_s, num_procs = None, *a
 
     except OSError as e:
         if (e.errno == 11):
-            logger.waring("Your function tries to spawn too many subprocesses/threads.")
+            logger.warning("Your function tries to spawn too many subprocesses/threads.")
         else:
             logger.warning('Something fishy going on here!')
             raise;
@@ -102,10 +102,13 @@ def enforce_limits (mem_in_mb=None, time_in_s=None, grace_period_in_s = 1):
                 if subproc.is_alive():
                     logger.debug("Your function took to long, killing it now.")
                     #subproc.terminate()
-                    
-                    os.killpg(os.getpgid(subproc.pid),15)
-                    subproc.join()
-                    return(None)
+                    try:
+						os.killpg(os.getpgid(subproc.pid),15)
+					except:
+						logger.warning("Killing the function call failed. It probably finished already.")
+					finally:
+						subproc.join()
+						return(None)
             else:
                 subproc.join()
             logger.debug("Your function has returned now with exit code %i."%subproc.exitcode)

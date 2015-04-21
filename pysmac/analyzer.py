@@ -127,7 +127,7 @@ class SMAC_analyzer(object):
 				print(" ".join(cmds + ["--log-level", "DEBUG"]))
 				return(None)
 			else:
-				return(pyfanova.fanova.Fanova(self.merged_dir))
+				return(pyfanova.fanova.Fanova(self.merged_dir, improvement_over='DEFAULT'))
 				
 		except ImportError:
 			raise NotImplemented('To use this feature, please install the pyfanova package.')
