@@ -197,19 +197,8 @@ class SMAC_analyzer(object):
 			horizontalalignment='center',
 			hide_button = 3)
 		
-		
 		fig, ax = plt.subplots()
 		incumbents = np.minimum.accumulate(map(itemgetter(0), self.trajectory))
 		ax.step(range(len(incumbents)), incumbents)
 		
-		
 		plt.show()
-
-
-
-if __name__ == "__main__":
-	analyzer = SMAC_analyzer('/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat2/scenario.dat')
-	print("\n"*10)
-	print(analyzer.data)
-	#analyzer.get_pyfanova_obj()
-
