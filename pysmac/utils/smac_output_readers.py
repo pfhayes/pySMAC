@@ -30,7 +30,7 @@ def json_parse(fileobj, decoder=json.JSONDecoder(), buffersize=2048):
 # UNSAT ---> 0
 # TIMEOUT -> -1
 # ELSE ----> -2
-def read_run_and_results_file(fn):
+def read_runs_and_results_file(fn):
 	# to convert everything into floats, the run result needs to be mapped
 	def map_run_result(res):
 		if b'SAT' in res:    return(1)
@@ -74,7 +74,6 @@ def read_validationCallStrings_file(fn):
 
 def read_validationObjectiveMatrix_file(fn):
 	values = {}
-
 	
 	with open(fn,'r') as fh:
 		header = fh.readline().split(",")
@@ -86,7 +85,19 @@ def read_validationObjectiveMatrix_file(fn):
 	return(values)
 
 
+def read_instances_file(fn):
+    with open(fn,'r') as fh:
+        instance_names = fh.readlines()
+    return(map(lambda s: s.strip(), instance_names))
 
+
+def read_instance_features_file(fn):
+    instances = {}
+    with open(fn,'r') as fh:
+       for line in  fh.readline():
+           tmp = line.strip().split(" ")
+           instances[tmp[0]] = None if len(tmp) == 1 else " ".join(tmp[1:])
+    return(map(lambda s: s.strip(), instance_names))
 
 
 
