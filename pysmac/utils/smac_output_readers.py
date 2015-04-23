@@ -33,10 +33,10 @@ def json_parse(fileobj, decoder=json.JSONDecoder(), buffersize=2048):
 def read_runs_and_results_file(fn):
 	# to convert everything into floats, the run result needs to be mapped
 	def map_run_result(res):
-		if b'SAT' in res:    return(1)
-		if b'UNSAT' in res:    return(0)
-		if b'TIMEOUT' in res:return(-1) 
-		return(-2)    # covers ABORT, CRASHED, but that shouldn't happen
+		if b'SAT' in res:    return(2)
+		if b'UNSAT' in res:    return(1)
+		if b'TIMEOUT' in res:return(0) 
+		return(-1)    # covers ABORT, CRASHED, but that shouldn't happen
 	
 	return(np.loadtxt(fn, skiprows=1, delimiter=',',
 		usecols = list(range(1,14))+[15], # skip empty 'algorithm run data' column
@@ -94,10 +94,11 @@ def read_instances_file(fn):
 def read_instance_features_file(fn):
     instances = {}
     with open(fn,'r') as fh:
-       for line in  fh.readline():
-           tmp = line.strip().split(" ")
-           instances[tmp[0]] = None if len(tmp) == 1 else " ".join(tmp[1:])
-    return(map(lambda s: s.strip(), instance_names))
+       for line in  fh.readlines():
+           tmp = line.strip().split(",")
+           instances[tmp[0]] = ",".join(tmp[1:])
+           print instances[tmp[0]]
+    return(instances)
 
 
 

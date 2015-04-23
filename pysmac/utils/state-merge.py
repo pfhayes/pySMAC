@@ -4,61 +4,160 @@ sys.path.append('../../')
 
 import os
 import glob
-
+import operator
+import errno
 
 import pysmac.utils.smac_output_readers as readers
 
 
 
 def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn = "instances.txt" , feat_fn = "instance-features.txt" , ps_fn = "paramstrings-it*.txt"):    
-    
+    print("reading {}".format(directory))
     configs = readers.read_paramstrings_file(glob.glob(os.path.join(directory,ps_fn))[0])
     instance_names = readers.read_instances_file(glob.glob(os.path.join(directory,inst_fn))[0])
     runs_and_results = readers.read_runs_and_results_file(glob.glob(os.path.join(directory, rar_fn))[0])
     full_feat_fn = glob.glob(os.path.join(directory,feat_fn))
-    
-    if len(full_feat_fn) > 0:
+    if len(full_feat_fn) == 1:      
         instance_features = readers.read_instance_features_file(full_feat_fn[0])
     else:
+        print("No feature file")
         instance_features = None
-    
+
     return (configs, instance_names, instance_features, runs_and_results)
 
 
 
-def state_merge( state_run_directory_list, drop_duplicates = False):
+def state_merge( state_run_directory_list, destination, drop_duplicates = False):
 
     configurations = {}
     instances = {}
+    runs_and_results = {}
     
     i_confs = 1;
     i_insts = 1;
 
     for directory in state_run_directory_list:
+        #try:
         confs, inst_names, inst_feats, rars = read_sate_run_folder(directory)
-
+        print("\n"*20)
+        print("="*50)
+        print(inst_feats.values())
+        print("="*50)
+        break
+        #except:
+        #    print("Something went wrong while reading {}. Skipping it.".format(directory))
+        #    continue
+        
+        # confs is a list of dicts, but dicts are not hashable, so they are
+        # converted into a tuple of (key, value) pairs and then sorted
+        confs = map(lambda d: tuple(sorted(d.items())), confs)        
+        
+        # merge the configurations
         for conf in confs:
-            if conf is not in configurations:
+            if not conf in configurations:
                 configurations[conf] = {'index': i_confs}
                 i_confs += 1
-        for i in len(inst_names):
-            if inst_names[i] is not in instances:
+        # merge the instances
+        for i in range(len(inst_names)):
+            if not inst_names[i] in instances:
                 instances[inst_names[i]] = {'index': i_insts}
-                if inst_feats is not None:
-                    instances[inst_names[i]] = {'features': inst_feats[inst_names[i]]}
+                instances[inst_names[i]]['features'] =  inst_feats[i] if inst_feats is not None else None
                 i_insts += 1
             else:
-                #TODO make sure it has the same features
+                #print(inst_feats)
+                if (inst_feats is None):
+                    if (instances[inst_names[i]]['features'] is not None):
+                        raise ValueError("The data contains the same instance name ({}) twice, but once with and without features!".format(inst_names[i]))
+                elif not instances[inst_names[i]]['features'] == inst_feats[inst_names[i]]:
+                    raise ValueError("The data contains the same instance name ({}) twice, but with different features!".format(inst_names[i]))
                 pass
         
+        for run in rars:
+            # get the local configuration and instance id
+            lcid, liid = int(run[0])-1, int(run[1])-1
+            # translate them into the global ones
+            gcid = configurations[confs[lcid]]['index']
+            giid = instances[inst_names[liid]]['index']
+
+            # check for duplicates and skip if necessary
+            if (gcid, giid) in runs_and_results:
+                if drop_duplicates:
+                    #print('dropped duplicate: configuration {} on instace {}'.format(gcid, giid))
+                    continue
+                else: runs_and_results[(gcid, giid)].append(run[3:])
+            else:
+                runs_and_results[(gcid, giid)] = [run[2:]]
+
+    # create output directory
+    try:
+        os.makedirs(destination)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            pass
+        else:
+            raise
+        
+    # create all files, overwriting existing ones
+
+    with open(os.path.join(destination, 'instances.txt'),'w') as fh:
+        sorted_instance_names = sorted([(instances[name]['index'], name)
+                                                    for name in instances])
+        fh.write('\n'.join(map(operator.itemgetter(1), sorted_instance_names)))
+
+    with open(os.path.join(destination, 'runs_and_results-it0.csv'),'w') as fh:
+        cumulative_runtime = 0.0
+        
+        fh.write("Run Number,Run History Configuration ID,Instance ID,"
+                 "Response Value (y),Censored?,Cutoff Time Used,"
+                 "Seed,Runtime,Run Length,"
+                 "Run Result Code,Run Quality,SMAC Iteration,"
+                 "SMAC Cumulative Runtime,Run Result,"
+                 "Additional Algorithm Run Data,Wall Clock Time,\n")
+        run_i = 1
+        for ((conf,inst),res) in runs_and_results.items():
+            for r in res:
+                fh.write('{},{},{},'.format(run_i, conf, inst))
+                fh.write('{},{},{},'.format(r[0], int(r[1]), r[2]))
+                fh.write('{},{},{},'.format(int(r[3]), r[4], r[5]))
+                fh.write('{},{},{},'.format(int(r[6]), r[7], 0))
                 
+                cumulative_runtime += r[4]
+                
+                if r[10] == 2:
+                    tmp = 'SAT'       
+                if r[10] == 1:
+                    tmp = 'UNSAT'
+                if r[10] == 0:
+                    tmp = 'TIMEOUT'
+                if r[10] == -1:
+                    tmp = 'CRASHED'
+                
+                fh.write('{},{},,{},'.format(cumulative_runtime,tmp, r[11]))
+                fh.write('\n')
+                run_i += 1
+
+    with open(os.path.join(destination, 'paramstrings-it0.txt'),'w') as fh:
+        sorted_confs = [(configurations[k]['index'],k) for k in configurations.keys()]
+        sorted_confs.sort()
+        for conf in sorted_confs:
+            fh.write("{}: ".format(conf[0]))
+            fh.write(", ".join(["{}='{}'".format(p[0],p[1]) for p in conf[1]]))
+            fh.write('\n')
+
+
+    if set(map(operator.itemgetter('features'), instances.values())) != set([None]):
+        print("Have to create feature file")
+        pass
+
+    return(configurations, instances, runs_and_results, sorted_instance_names, sorted_confs)
+               
 
 
 
 
-test_list = ['/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat_mini/out/scenario/state-run0',
-	'/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat_mini/out/scenario/state-run1']
+test_list = ['/home/sfalkner/repositories/data/state-run0',
+	'/home/sfalkner/repositories/data/state-run0']
 
 
-test_list = glob.glob("/home/sfalkner/repositories/data/*")
-state_merge(test_list)
+#test_list = glob.glob("/home/sfalkner/repositories/data/*")
+configurations, instances, runs_and_results, sorted_instance_names, sorted_confs = state_merge(test_list, '/tmp/merge_test', drop_duplicates=True)
