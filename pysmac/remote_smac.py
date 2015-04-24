@@ -206,7 +206,6 @@ class remote_smac(object):
         return (config_dict)
     
     def report_result(self, value, runtime, status = b'CRASHED'):
-        print(runtime)
         tmp ={'status': status, 'runtime': runtime}
         
         # value is only None, if the function call was unsuccessful
@@ -269,14 +268,36 @@ def remote_smac_function(only_arg):
 
             # execute the function and measure the time it takes to evaluate
             wrapped_function = pysmac.utils.limit_resources.enforce_limits(mem_in_mb=mem_limit_function, time_in_s=current_t_limit, grace_period_in_s = 1)(function)
-            start = time.time()
-            res = wrapped_function(**config_dict)
-            runtime = time.time()-start
+
+            
+            num_try = 0
+            while num_try < 8:
+                try:
+                    start = time.time()
+                    res = wrapped_function(**config_dict)
+                    runtime = time.time()-start
+                    break
+                except OSError as e:
+                    if e.errno == 11:
+                        logger.warning('Resource temporarily not available. Trail {} of 8'.format(num_trd))
+                        time.sleep(1)
+                    else:
+                        raise
+                except:
+                    raise
+                finally:
+                    num_try += 1
+            if num_try == 8:
+                logger.warning('Configuration {} crashed 8 times, giving up on it.'.format(config_dict))
+                runtime = 0
+                res = None
+                
+                
             logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res), str(runtime)))
-            if runtime > current_t_limit:
+            if runtime >= current_t_limit:
                 smac.report_result(res, runtime, b'TIMEOUT')
             else:
                 smac.report_result(res, runtime)
             num_iterations += 1
     except:
-        traceback.print_exc()
+        traceback.print_exc() # to see the traceback of subprocesses
