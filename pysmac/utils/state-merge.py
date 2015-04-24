@@ -6,6 +6,10 @@ import os
 import glob
 import operator
 import errno
+import filecmp
+import shutil
+import numpy
+
 
 import pysmac.utils.smac_output_readers as readers
 
@@ -32,18 +36,31 @@ def state_merge( state_run_directory_list, destination, drop_duplicates = False)
     configurations = {}
     instances = {}
     runs_and_results = {}
+    ff_header= set()
     
     i_confs = 1;
     i_insts = 1;
 
+
+    # make sure all pcs files are the same
+    pcs_files = map(lambda d: os.path.join(d,'param.pcs'), state_run_directory_list)
+    if not all(map(lambda fn: filecmp.cmp(fn, pcs_files[0]), pcs_files[1:])):
+        raise RuntimeError("The pcs files of the different runs are not identical!")
+
+    scenario_files = map(lambda d: os.path.join(d,'scenario.txt'), state_run_directory_list)
+    if not all(map(lambda fn: filecmp.cmp(fn, scenario_files[0]), scenario_files[1:])):
+        raise RuntimeError("The scenario files of the different runs are not identical!")
+
+
+
     for directory in state_run_directory_list:
         #try:
-        confs, inst_names, inst_feats, rars = read_sate_run_folder(directory)
-        print("\n"*20)
-        print("="*50)
-        print(inst_feats.values())
-        print("="*50)
-        break
+        confs, inst_names, tmp , rars = read_sate_run_folder(directory)
+
+        
+        (header_feats, inst_feats) = tmp if tmp is not None else (None,None)
+
+        
         #except:
         #    print("Something went wrong while reading {}. Skipping it.".format(directory))
         #    continue
@@ -59,25 +76,37 @@ def state_merge( state_run_directory_list, destination, drop_duplicates = False)
                 i_confs += 1
         # merge the instances
         for i in range(len(inst_names)):
-            if not inst_names[i] in instances:
-                instances[inst_names[i]] = {'index': i_insts}
-                instances[inst_names[i]]['features'] =  inst_feats[i] if inst_feats is not None else None
+            if not inst_names[i][0] in instances:
+                instances[inst_names[i][0]] = {'index': i_insts}
+                instances[inst_names[i][0]]['features'] =  inst_feats[inst_names[i][0]] if inst_feats is not None else None
+                instances[inst_names[i][0]]['additional info'] = ' '.join(inst_names[i][1:]) if len(inst_names[i]) > 1 else None
                 i_insts += 1
             else:
-                #print(inst_feats)
+                print(inst_names[i])
                 if (inst_feats is None):
-                    if (instances[inst_names[i]]['features'] is not None):
+                    if not (instances[inst_names[i][0]]['features'] is None):
                         raise ValueError("The data contains the same instance name ({}) twice, but once with and without features!".format(inst_names[i]))
-                elif not instances[inst_names[i]]['features'] == inst_feats[inst_names[i]]:
+                elif not instances[inst_names[i][0]]['features'] == inst_feats[inst_names[i][0]]:
                     raise ValueError("The data contains the same instance name ({}) twice, but with different features!".format(inst_names[i]))
                 pass
         
+        # store the feature file header:
+        ff_header.add(header_feats)
+        
+        if len(ff_header) != 1:
+            raise RuntimeError("Feature Files not consistent across runs!\n{}".format(header_feats))
+        
+        
+        if len(rars.shape) == 1:
+            rars = numpy.array([rars])
         for run in rars:
             # get the local configuration and instance id
+            print run
             lcid, liid = int(run[0])-1, int(run[1])-1
+
             # translate them into the global ones
             gcid = configurations[confs[lcid]]['index']
-            giid = instances[inst_names[liid]]['index']
+            giid = instances[inst_names[liid][0]]['index']
 
             # check for duplicates and skip if necessary
             if (gcid, giid) in runs_and_results:
@@ -97,12 +126,21 @@ def state_merge( state_run_directory_list, destination, drop_duplicates = False)
         else:
             raise
         
-    # create all files, overwriting existing ones
+    # create all files, overwriting exisating ones
+    shutil.copy(pcs_files[0], destination)
+    shutil.copy(scenario_files[0], destination)
+        
 
     with open(os.path.join(destination, 'instances.txt'),'w') as fh:
-        sorted_instance_names = sorted([(instances[name]['index'], name)
-                                                    for name in instances])
-        fh.write('\n'.join(map(operator.itemgetter(1), sorted_instance_names)))
+        sorted_instances = []
+        for name in instances:
+            if instances[name]['additional info'] is not None:
+                sorted_instances.append( (instances[name]['index'], name + ' ' + instances[name]['additional info']) )
+            else:
+                sorted_instances.append( (instances[name]['index'], name) )
+        
+        sorted_instances.sort()
+        fh.write('\n'.join(map(operator.itemgetter(1), sorted_instances)))
 
     with open(os.path.join(destination, 'runs_and_results-it0.csv'),'w') as fh:
         cumulative_runtime = 0.0
@@ -122,7 +160,6 @@ def state_merge( state_run_directory_list, destination, drop_duplicates = False)
                 fh.write('{},{},{},'.format(int(r[6]), r[7], 0))
                 
                 cumulative_runtime += r[4]
-                
                 if r[10] == 2:
                     tmp = 'SAT'       
                 if r[10] == 1:
@@ -144,13 +181,14 @@ def state_merge( state_run_directory_list, destination, drop_duplicates = False)
             fh.write(", ".join(["{}='{}'".format(p[0],p[1]) for p in conf[1]]))
             fh.write('\n')
 
-
     if set(map(operator.itemgetter('features'), instances.values())) != set([None]):
-        print("Have to create feature file")
-        pass
+        with open(os.path.join(destination, 'instance-features.txt'),'w') as fh:
+            fh.write(ff_header.pop())
+            sorted_features = [(instances[inst]['index'], inst + ',' + instances[inst]['features']) for inst in instances]
+            sorted_features.sort()
+            fh.write('\n'.join([ t[1] for t in sorted_features]))
 
-    return(configurations, instances, runs_and_results, sorted_instance_names, sorted_confs)
-               
+    return(configurations, instances, runs_and_results, sorted_instances, sorted_confs, inst_feats)
 
 
 
@@ -159,5 +197,5 @@ test_list = ['/home/sfalkner/repositories/data/state-run0',
 	'/home/sfalkner/repositories/data/state-run0']
 
 
-#test_list = glob.glob("/home/sfalkner/repositories/data/*")
-configurations, instances, runs_and_results, sorted_instance_names, sorted_confs = state_merge(test_list, '/tmp/merge_test', drop_duplicates=True)
+test_list = glob.glob("/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat_test/out/scenario/state-run*")
+configurations, instances, runs_and_results, sorted_instance_names, sorted_confs, inst_feats = state_merge(test_list, '/tmp/merge_test', drop_duplicates=True)
