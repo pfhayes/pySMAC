@@ -40,7 +40,7 @@ def read_runs_and_results_file(fn):
     
     return(np.loadtxt(fn, skiprows=1, delimiter=',',
         usecols = list(range(1,14))+[15], # skip empty 'algorithm run data' column
-        converters={13:map_run_result}))
+        converters={13:map_run_result}, ndmin=2))
 
 
 # reads a paramstring file from a state-run folder

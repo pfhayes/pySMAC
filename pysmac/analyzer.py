@@ -3,17 +3,14 @@ from __future__ import print_function
 import os
 import glob
 import six
-import json
-import functools
 import re
-import operator
-import subprocess
+#import operator
 
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.cm as pltcm
-from matplotlib.widgets import CheckButtons
+#import matplotlib.cm as pltcm
+#from matplotlib.widgets import CheckButtons
 
 import sys
 sys.path.append('/home/sfalkner/repositories/github/pysmac/')
@@ -98,7 +95,7 @@ class SMAC_analyzer(object):
                 print("Failed to load data for run {}. Please make sure it has finished properly.\nDropping it for now.".format(i))
                 self.data.pop(i)
 
-    def get_pyfanova_obj(self, improvement_over='DEFAULT'):
+    def get_pyfanova_obj(self, improvement_over='DEFAULT', check_scenario_files = True):
         try:
             import pyfanova.fanova
             
@@ -109,12 +106,20 @@ class SMAC_analyzer(object):
                 import shutil
                 shutil.rmtree(self.merged_dir)
 
-            import pysmac.untils.state_merge
+            from pysmac.utils.state_merge import state_merge
+            
+            print(os.path.join(self.scenario_output_dir, 'state-run*'))
+            print(glob.glob(os.path.join(self.scenario_output_dir, 'state-run*')))
+            
+            state_merge(glob.glob(os.path.join(self.scenario_output_dir, 'state-run*')),
+                            self.merged_dir, check_scenario_files = check_scenario_files)
+            
 
             return(pyfanova.fanova.Fanova(self.merged_dir, improvement_over=improvement_over))
                 
         except ImportError:
-            raise NotImplemented('To use this feature, please install the pyfanova package.')
+            raise
+            raise NotImplementedError('To use this feature, please install the pyfanova package.')
         except:
             print('Something went during the initialization of the FANOVA.')
             raise

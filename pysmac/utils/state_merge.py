@@ -1,7 +1,3 @@
-import sys
-
-sys.path.append('../../')
-
 import os
 import glob
 import operator
@@ -31,7 +27,8 @@ def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn 
 
 
 
-def state_merge( state_run_directory_list, destination, drop_duplicates = False):
+def state_merge(state_run_directory_list, destination, 
+                check_scenario_files = True, drop_duplicates = False):
 
     configurations = {}
     instances = {}
@@ -48,22 +45,21 @@ def state_merge( state_run_directory_list, destination, drop_duplicates = False)
         raise RuntimeError("The pcs files of the different runs are not identical!")
 
     scenario_files = map(lambda d: os.path.join(d,'scenario.txt'), state_run_directory_list)
-    if not all(map(lambda fn: filecmp.cmp(fn, scenario_files[0]), scenario_files[1:])):
+    if check_scenario_files and not all(map(lambda fn: filecmp.cmp(fn, scenario_files[0]), scenario_files[1:])):
         raise RuntimeError("The scenario files of the different runs are not identical!")
 
 
 
     for directory in state_run_directory_list:
-        #try:
-        confs, inst_names, tmp , rars = read_sate_run_folder(directory)
+        try:
+            confs, inst_names, tmp , rars = read_sate_run_folder(directory)
+
+            (header_feats, inst_feats) = tmp if tmp is not None else (None,None)
 
         
-        (header_feats, inst_feats) = tmp if tmp is not None else (None,None)
-
-        
-        #except:
-        #    print("Something went wrong while reading {}. Skipping it.".format(directory))
-        #    continue
+        except:
+            print("Something went wrong while reading {}. Skipping it.".format(directory))
+            continue
         
         # confs is a list of dicts, but dicts are not hashable, so they are
         # converted into a tuple of (key, value) pairs and then sorted
@@ -111,7 +107,8 @@ def state_merge( state_run_directory_list, destination, drop_duplicates = False)
                 if drop_duplicates:
                     #print('dropped duplicate: configuration {} on instace {}'.format(gcid, giid))
                     continue
-                else: runs_and_results[(gcid, giid)].append(run[3:])
+                else:
+                    runs_and_results[(gcid, giid)].append(run[2:])
             else:
                 runs_and_results[(gcid, giid)] = [run[2:]]
 
