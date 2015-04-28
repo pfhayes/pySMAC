@@ -83,6 +83,7 @@ class SMAC_optimizer(object):
             'output-dir': self.__out_dir,
             'console-log-level': 'OFF',
             'abort-on-first-run-crash': False,
+            'overall_obj': 'MEAN10'
             }
         if debug:
             self.smac_options['console-log-level']='INFO'
@@ -118,7 +119,7 @@ class SMAC_optimizer(object):
             seed = [seed]
         elif isinstance(seed, int) and num_runs > 1:
             seed = range(seed, seed+num_runs)
-        elif isinstance(seed, list) or isinstace(seed, tuple):
+        elif isinstance(seed, list) or isinstance(seed, tuple):
             if len(seed) != num_runs:
                 raise ValueError("You have to specify a seed for every instance!")
         else:

@@ -279,7 +279,7 @@ def remote_smac_function(only_arg):
                     break
                 except OSError as e:
                     if e.errno == 11:
-                        logger.warning('Resource temporarily not available. Trail {} of 8'.format(num_trd))
+                        logger.warning('Resource temporarily not available. Trail {} of 8'.format(num_try))
                         time.sleep(1)
                     else:
                         raise

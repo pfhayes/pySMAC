@@ -82,7 +82,6 @@ def state_merge( state_run_directory_list, destination, drop_duplicates = False)
                 instances[inst_names[i][0]]['additional info'] = ' '.join(inst_names[i][1:]) if len(inst_names[i]) > 1 else None
                 i_insts += 1
             else:
-                print(inst_names[i])
                 if (inst_feats is None):
                     if not (instances[inst_names[i][0]]['features'] is None):
                         raise ValueError("The data contains the same instance name ({}) twice, but once with and without features!".format(inst_names[i]))
@@ -101,7 +100,6 @@ def state_merge( state_run_directory_list, destination, drop_duplicates = False)
             rars = numpy.array([rars])
         for run in rars:
             # get the local configuration and instance id
-            print run
             lcid, liid = int(run[0])-1, int(run[1])-1
 
             # translate them into the global ones
@@ -189,13 +187,3 @@ def state_merge( state_run_directory_list, destination, drop_duplicates = False)
             fh.write('\n'.join([ t[1] for t in sorted_features]))
 
     return(configurations, instances, runs_and_results, sorted_instances, sorted_confs, inst_feats)
-
-
-
-
-test_list = ['/home/sfalkner/repositories/data/state-run0',
-	'/home/sfalkner/repositories/data/state-run0']
-
-
-test_list = glob.glob("/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat_test/out/scenario/state-run*")
-configurations, instances, runs_and_results, sorted_instance_names, sorted_confs, inst_feats = state_merge(test_list, '/tmp/merge_test', drop_duplicates=True)
