@@ -2,24 +2,33 @@
 import resource
 import signal
 import multiprocessing
-import sys
 import os
 
 class abort_function (Exception): pass
 
 
 # create the function the subprocess can execute
-def subprocess_func(func, pipe, mem_in_mb, time_limit_in_s, num_procs = None, *args, **kwargs):
+def subprocess_func(func, pipe, mem_in_mb, cpu_time_limit_in_s, wall_time_limit_in_s, num_procs = None, *args, **kwargs):
 
     logger = multiprocessing.get_logger()
 
     os.setpgrp()
 
-    # simple signal handler to close the pipe if a signal is is caught
+    # simple signal handler to catch the signals for time limits
     def handler(signum, frame):
         logger.debug("received signal number %i. Exiting uncracefully."%signum)
+        
+        if (signum == signal.SIGXCPU):
+            logger.debug("CPU time exceeded, aborting!")
+        elif (signum == signal.SIGALARM):
+            logger.debug("Wallclock time exceeded, aborting!")
+            
         raise abort_function
     
+    signal.signal(signal.SIGALRM, handler)
+    signal.signal(signal.SIGTERM, handler)
+    signal.signal(signal.SIGXCPU, handler)
+
 
     # set the memory limit
     if mem_in_mb is not None:
@@ -34,14 +43,12 @@ def subprocess_func(func, pipe, mem_in_mb, time_limit_in_s, num_procs = None, *a
 
 
     # schedule an alarm in specified number of seconds
-    if time_limit_in_s is not None:
-        signal.alarm(time_limit_in_s)
-
+    if wall_time_limit_in_s is not None:
+        signal.alarm(wall_time_limit_in_s)
+    
+    if cpu_time_limit_in_s is not None:
         # one could also limit the actual CPU time, but that does not help if the process hangs, e.g., in a dead-lock
-        #resource.setrlimit(resource.RLIMIT_CPU, (time_limit_in_s,time_limit_in_s))
-
-    signal.signal( signal.SIGALRM, handler)
-    signal.signal( signal.SIGTERM, handler)
+        resource.setrlimit(resource.RLIMIT_CPU, (cpu_time_limit_in_s,cpu_time_limit_in_s))
 
     return_value=None;
 
@@ -58,7 +65,7 @@ def subprocess_func(func, pipe, mem_in_mb, time_limit_in_s, num_procs = None, *a
         if (e.errno == 11):
             logger.warning("Your function tries to spawn too many subprocesses/threads.")
         else:
-            logger.warning('Something fishy going on here!')
+            logger.warning('Something is going on here!')
             raise;
 
     except abort_function:
@@ -72,14 +79,15 @@ def subprocess_func(func, pipe, mem_in_mb, time_limit_in_s, num_procs = None, *a
         pipe.send(return_value)
         pipe.close()
 
-def enforce_limits (mem_in_mb=None, time_in_s=None, grace_period_in_s = 1):
+def enforce_limits (mem_in_mb=None, cpu_time_in_s=None, wall_time_in_s=None, grace_period_in_s = 1):
     logger = multiprocessing.get_logger()
     
     if mem_in_mb is not None:
         logger.debug("restricting your function to %i mb memory."%(mem_in_mb))
-    if time_in_s is not None:
-        logger.debug("restricting your function to %i seconds runtime."%(time_in_s))
-
+    if cpu_time_in_s is not None:
+        logger.debug("restricting your function to %i seconds cpu time."%(cpu_time_in_s))
+    if wall_time_in_s is not None:
+        logger.debug("restricting your function to %i seconds cpu time."%(wall_time_in_s))
 
     
     def actual_decorator(func):
@@ -90,13 +98,13 @@ def enforce_limits (mem_in_mb=None, time_in_s=None, grace_period_in_s = 1):
             parent_conn, child_conn = multiprocessing.Pipe()
 
             # create and start the process
-            subproc = multiprocessing.Process(target=subprocess_func, name="Call to your function", args = (func, child_conn,mem_in_mb, time_in_s) + args ,kwargs = kwargs)
+            subproc = multiprocessing.Process(target=subprocess_func, name="Call to your function", args = (func, child_conn,mem_in_mb, cpu_time_in_s, wall_time_in_s) + args ,kwargs = kwargs)
             logger.debug("Your function is called now.")
             subproc.start()
             
-            if time_in_s is not None:
+            if wall_time_in_s is not None:
                 # politely wait for it to finish
-                subproc.join(time_in_s + grace_period_in_s)
+                subproc.join(wall_time_in_s + grace_period_in_s)
 
                 # if it is still alive, send sigterm
                 if subproc.is_alive():

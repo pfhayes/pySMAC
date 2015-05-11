@@ -5,6 +5,7 @@ import os
 import traceback
 import socket
 import subprocess
+import resource
 from pkg_resources import resource_filename
 from math import ceil
 
@@ -230,7 +231,6 @@ class remote_smac(object):
 
 
 def remote_smac_function(only_arg):
-    
     try:
     
         scenario_file, additional_options_fn, seed, function, parser_dict,\
@@ -239,7 +239,8 @@ def remote_smac_function(only_arg):
     
         logger = multiprocessing.get_logger()
     
-        smac = remote_smac(scenario_file, additional_options_fn, seed, class_path, memory_limit_smac_mb,parser_dict)
+        smac = remote_smac(scenario_file, additional_options_fn, seed, 
+                               class_path, memory_limit_smac_mb,parser_dict)
     
         logger.debug('Started SMAC subprocess')
     
@@ -263,19 +264,24 @@ def remote_smac_function(only_arg):
                 del config_dict['seed']
         
             current_t_limit = int(ceil(config_dict.pop('cutoff_time')))
-        
-            #logger.debug('SMAC suggest the following configuration:\n%s'%(config_dict,))
 
             # execute the function and measure the time it takes to evaluate
-            wrapped_function = pysmac.utils.limit_resources.enforce_limits(mem_in_mb=mem_limit_function, time_in_s=current_t_limit, grace_period_in_s = 1)(function)
+            wrapped_function = pysmac.utils.limit_resources.enforce_limits(
+                mem_in_mb=mem_limit_function,
+                cpu_time_in_s=current_t_limit,
+                wall_time_limit_in_s=10*current_t_limit,
+                grace_period_in_s = 1)(function)
 
-            
-            num_try = 0
-            while num_try < 8:
+            # workaround for the 'Resource temporarily not available' error on
+            # the BaWue cluster if to many processes were spawned in a short
+            # period. It now waits a second and tries again for 8 times.
+            num_try = 1
+            while num_try <= 8:
                 try:
                     start = time.time()
                     res = wrapped_function(**config_dict)
-                    runtime = time.time()-start
+                    wall_time = time.time()-start
+                    cpu_time = resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
                     break
                 except OSError as e:
                     if e.errno == 11:
@@ -287,17 +293,32 @@ def remote_smac_function(only_arg):
                     raise
                 finally:
                     num_try += 1
-            if num_try == 8:
+            if num_try == 9:
                 logger.warning('Configuration {} crashed 8 times, giving up on it.'.format(config_dict))
-                runtime = 0
                 res = None
-                
-                
-            logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res), str(runtime)))
-            if runtime >= current_t_limit:
-                smac.report_result(res, runtime, b'TIMEOUT')
+            
+            if res is not None:
+                logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res), str(res['runtime'])))
             else:
-                smac.report_result(res, runtime)
+                logger.debug('iteration %i: did not return in time, so it probably timed out'%(num_iterations))
+
+
+            # try to infere the status of the function call:
+            # if res['status'] exsists, it will be used in 'report_result'
+            # if there was no return value, it has either crashed or timed out
+            # for simple function, we just use 'SAT'
+            status = b'CRASHED' if res is None else b'SAT'
+            try:
+                # check if it recorded some runtime by itself and use that
+                if res['runtime'] > current_t_limit - 2e-2: # mini slack to account for limited precision of cputime measurement
+                    status=b'TIMEOUT'
+            except AttributeError:
+                # if not, we have to use our own time measurements here
+                if (res is None) and ((cpu_time > current_t_limit - 2e-2) or
+                                            (wall_time >= 10*current_t_limit)):
+                    status=b'TIMEOUT'
+
+            smac.report_result(res, cpu_time, status)
             num_iterations += 1
     except:
         traceback.print_exc() # to see the traceback of subprocesses

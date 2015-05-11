@@ -88,7 +88,6 @@ class SMAC_analyzer(object):
                 # without validation, there are only trajectory files to pase
                 else:
                     raise NotImplemented("The handling of cases without validation runs is not yet implemented")
-                    pass
                 self.data[i]['parameters'] = configs
                 self.data[i]['test_performances'] = test_performances
             except:

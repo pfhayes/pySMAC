@@ -44,18 +44,15 @@ def state_merge(state_run_directory_list, destination,
     if not all(map(lambda fn: filecmp.cmp(fn, pcs_files[0]), pcs_files[1:])):
         raise RuntimeError("The pcs files of the different runs are not identical!")
 
+    #check the scenario files if desired
     scenario_files = map(lambda d: os.path.join(d,'scenario.txt'), state_run_directory_list)
     if check_scenario_files and not all(map(lambda fn: filecmp.cmp(fn, scenario_files[0]), scenario_files[1:])):
         raise RuntimeError("The scenario files of the different runs are not identical!")
 
-
-
     for directory in state_run_directory_list:
         try:
             confs, inst_names, tmp , rars = read_sate_run_folder(directory)
-
             (header_feats, inst_feats) = tmp if tmp is not None else (None,None)
-
         
         except:
             print("Something went wrong while reading {}. Skipping it.".format(directory))
