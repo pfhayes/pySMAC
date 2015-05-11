@@ -94,7 +94,7 @@ class SMAC_analyzer(object):
                 print("Failed to load data for run {}. Please make sure it has finished properly.\nDropping it for now.".format(i))
                 self.data.pop(i)
 
-    def get_pyfanova_obj(self, improvement_over='DEFAULT', check_scenario_files = True):
+    def get_pyfanova_obj(self, improvement_over='DEFAULT', check_scenario_files = True, heap_size=8192):
         try:
             import pyfanova.fanova
             
@@ -114,7 +114,7 @@ class SMAC_analyzer(object):
                             self.merged_dir, check_scenario_files = check_scenario_files)
             
 
-            return(pyfanova.fanova.Fanova(self.merged_dir, improvement_over=improvement_over))
+            return(pyfanova.fanova.Fanova(self.merged_dir, improvement_over=improvement_over,heap_size=heap_size))
                 
         except ImportError:
             raise
