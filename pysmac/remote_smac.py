@@ -312,11 +312,14 @@ def remote_smac_function(only_arg):
                 # check if it recorded some runtime by itself and use that
                 if res['runtime'] > current_t_limit - 2e-2: # mini slack to account for limited precision of cputime measurement
                     status=b'TIMEOUT'
-            except AttributeError:
+            except (AttributeError, TypeError, KeyError):
                 # if not, we have to use our own time measurements here
                 if (res is None) and ((cpu_time > current_t_limit - 2e-2) or
                                             (wall_time >= 10*current_t_limit)):
                     status=b'TIMEOUT'
+            except:
+                # reraise in case something else went wrong
+                raise
 
             smac.report_result(res, cpu_time, status)
             num_iterations += 1
