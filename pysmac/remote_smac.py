@@ -269,7 +269,7 @@ def remote_smac_function(only_arg):
             wrapped_function = pysmac.utils.limit_resources.enforce_limits(
                 mem_in_mb=mem_limit_function,
                 cpu_time_in_s=current_t_limit,
-                wall_time_limit_in_s=10*current_t_limit,
+                wall_time_in_s=10*current_t_limit,
                 grace_period_in_s = 1)(function)
 
             # workaround for the 'Resource temporarily not available' error on
