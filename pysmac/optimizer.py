@@ -83,7 +83,10 @@ class SMAC_optimizer(object):
             'output-dir': self.__out_dir,
             'console-log-level': 'OFF',
             'abort-on-first-run-crash': False,
-            'overall_obj': 'MEAN10'
+            'overall_obj': 'MEAN10',
+            'scenario_fn': 'scenario.dat' # NOT A SMAC OPTION, but allows to
+                                          # change the standard name (used for 
+                                          # in SpySMAC)
             }
         if debug:
             self.smac_options['console-log-level']='INFO'
@@ -150,7 +153,7 @@ class SMAC_optimizer(object):
                     fh.write("id_%i\n"%i)
 
         # create and fill the scenario file
-        scenario_fn = os.path.join(self.working_directory,'scenario.dat')
+        scenario_fn = os.path.join(self.working_directory,self.smac_options.pop('scenario_fn'))
         scenario_options = {'algo', 'algo-exec', 'algoExec',
                             'algo-exec-dir', 'exec-dir', 'execDir','execdir',
                             'deterministic', 'algo-deterministic',

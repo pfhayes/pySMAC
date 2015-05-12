@@ -222,9 +222,9 @@ class remote_smac(object):
         
         # for propper printing, we have to convert the status into unicode
         tmp['status'] = tmp['status'].decode()
-        s = u'Result for ParamILS: {0[status]}, {0[runtime]}, 0, {0[value]}, 0\
+        s = u'Result for SMAC: {0[status]}, {0[runtime]}, 0, {0[value]}, 0\
             '.format(tmp)
-        print(s)
+        self.__logger.debug(s)
         self.__conn.sendall(s.encode())
         self.__conn.close();
 
