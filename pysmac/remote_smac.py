@@ -298,7 +298,12 @@ def remote_smac_function(only_arg):
                 res = None
             
             if res is not None:
-                logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res), str(res['runtime'])))
+                try:
+                    logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res), str(res['runtime'])))
+                except (TypeError, AttributeError, KeyError):
+                    logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res),cpu_time))
+                except:
+                    raise
             else:
                 logger.debug('iteration %i: did not return in time, so it probably timed out'%(num_iterations))
 

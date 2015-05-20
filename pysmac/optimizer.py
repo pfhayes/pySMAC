@@ -83,7 +83,7 @@ class SMAC_optimizer(object):
             'output-dir': self.__out_dir,
             'console-log-level': 'OFF',
             'abort-on-first-run-crash': False,
-            'overall_obj': 'MEAN10',
+            'overall_obj': 'MEAN',
             'scenario_fn': 'scenario.dat' # NOT A SMAC OPTION, but allows to
                                           # change the standard name (used for 
                                           # in SpySMAC)

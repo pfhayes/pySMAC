@@ -1,4 +1,4 @@
-from . import optimizer
+from pysmac.optimizer import *
 #from . import analyzer
 
 
