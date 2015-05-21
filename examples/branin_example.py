@@ -51,5 +51,5 @@ value, parameters = opt.minimize(modified_branin	# the function to be minimized
 
 # the return value is a tuple of the lowest function value and a dictionary
 # containing corresponding parameter setting.
-print('Lowest function value found: %f'%value)
-print('Parameter setting %s'%parameters)
+print(('Lowest function value found: %f'%value))
+print(('Parameter setting %s'%parameters))

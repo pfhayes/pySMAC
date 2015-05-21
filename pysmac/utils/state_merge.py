@@ -12,7 +12,7 @@ import pysmac.utils.smac_output_readers as readers
 
 
 def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn = "instances.txt" , feat_fn = "instance-features.txt" , ps_fn = "paramstrings-it*.txt"):    
-    print("reading {}".format(directory))
+    print(("reading {}".format(directory)))
     configs = readers.read_paramstrings_file(glob.glob(os.path.join(directory,ps_fn))[0])
     instance_names = readers.read_instances_file(glob.glob(os.path.join(directory,inst_fn))[0])
     runs_and_results = readers.read_runs_and_results_file(glob.glob(os.path.join(directory, rar_fn))[0])
@@ -40,13 +40,13 @@ def state_merge(state_run_directory_list, destination,
 
 
     # make sure all pcs files are the same
-    pcs_files = map(lambda d: os.path.join(d,'param.pcs'), state_run_directory_list)
-    if not all(map(lambda fn: filecmp.cmp(fn, pcs_files[0]), pcs_files[1:])):
+    pcs_files = [os.path.join(d,'param.pcs') for d in state_run_directory_list]
+    if not all([filecmp.cmp(fn, pcs_files[0]) for fn in pcs_files[1:]]):
         raise RuntimeError("The pcs files of the different runs are not identical!")
 
     #check the scenario files if desired
-    scenario_files = map(lambda d: os.path.join(d,'scenario.txt'), state_run_directory_list)
-    if check_scenario_files and not all(map(lambda fn: filecmp.cmp(fn, scenario_files[0]), scenario_files[1:])):
+    scenario_files = [os.path.join(d,'scenario.txt') for d in state_run_directory_list]
+    if check_scenario_files and not all([filecmp.cmp(fn, scenario_files[0]) for fn in scenario_files[1:]]):
         raise RuntimeError("The scenario files of the different runs are not identical!")
 
     for directory in state_run_directory_list:
@@ -55,12 +55,12 @@ def state_merge(state_run_directory_list, destination,
             (header_feats, inst_feats) = tmp if tmp is not None else (None,None)
         
         except:
-            print("Something went wrong while reading {}. Skipping it.".format(directory))
+            print(("Something went wrong while reading {}. Skipping it.".format(directory)))
             continue
         
         # confs is a list of dicts, but dicts are not hashable, so they are
         # converted into a tuple of (key, value) pairs and then sorted
-        confs = map(lambda d: tuple(sorted(d.items())), confs)        
+        confs = [tuple(sorted(d.items())) for d in confs]        
         
         # merge the configurations
         for conf in confs:
@@ -144,7 +144,7 @@ def state_merge(state_run_directory_list, destination,
                  "SMAC Cumulative Runtime,Run Result,"
                  "Additional Algorithm Run Data,Wall Clock Time,\n")
         run_i = 1
-        for ((conf,inst),res) in runs_and_results.items():
+        for ((conf,inst),res) in list(runs_and_results.items()):
             for r in res:
                 fh.write('{},{},{},'.format(run_i, conf, inst))
                 fh.write('{},{},{},'.format(r[0], int(r[1]), r[2]))
@@ -166,14 +166,14 @@ def state_merge(state_run_directory_list, destination,
                 run_i += 1
 
     with open(os.path.join(destination, 'paramstrings-it0.txt'),'w') as fh:
-        sorted_confs = [(configurations[k]['index'],k) for k in configurations.keys()]
+        sorted_confs = [(configurations[k]['index'],k) for k in list(configurations.keys())]
         sorted_confs.sort()
         for conf in sorted_confs:
             fh.write("{}: ".format(conf[0]))
             fh.write(", ".join(["{}='{}'".format(p[0],p[1]) for p in conf[1]]))
             fh.write('\n')
 
-    if set(map(operator.itemgetter('features'), instances.values())) != set([None]):
+    if set(map(operator.itemgetter('features'), list(instances.values()))) != set([None]):
         with open(os.path.join(destination, 'instance-features.txt'),'w') as fh:
             fh.write(ff_header.pop())
             sorted_features = [(instances[inst]['index'], inst + ',' + instances[inst]['features']) for inst in instances]

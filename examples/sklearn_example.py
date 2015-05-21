@@ -58,7 +58,7 @@ opt = pysmac.SMAC_optimizer( working_directory = '/tmp/pysmac_test/',# the folde
 # first we try the sklearn default, so we can see if SMAC can improve the performance
 predictor = sklearn.ensemble.RandomForestClassifier()
 predictor.fit(X_train, Y_train)
-print('The default accuracy is %f'%predictor.score(X_test, Y_test))
+print(('The default accuracy is %f'%predictor.score(X_test, Y_test)))
 
 
 
@@ -73,5 +73,5 @@ value, parameters = opt.minimize(random_forest,
 					t_limit_function_s = 20			# 	You can limit the memory available and the wallclock time for each function call
 					)
 	
-print('The highest accuracy found: %f'%(-value))
-print('Parameter setting %s'%parameters)
+print(('The highest accuracy found: %f'%(-value)))
+print(('Parameter setting %s'%parameters))

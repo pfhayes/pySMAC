@@ -31,7 +31,7 @@ def read_pcs(filename):
             cat_match = CAT_REGEX.match(line)
             if cat_match:
                 name = cat_match.group("name")
-                values = set(map(lambda x: x.strip(" "), cat_match.group("values").split(",")))
+                values = set([x.strip(" ") for x in cat_match.group("values").split(",")])
                 default = cat_match.group("default")
                 
                 #logging.debug("CATEGORIAL: %s %s {%s} (%s)" %(name, default, ",".join(map(str, values)), type_))

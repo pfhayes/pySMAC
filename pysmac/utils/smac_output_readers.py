@@ -52,7 +52,7 @@ def read_paramstrings_file(fn):
         for line in fh.readlines():
             # remove run id and single quotes
             line = line[line.find(':')+1:].replace("'","")
-            pairs = map(lambda s: s.strip().split("="), line.split(','))
+            pairs = [s.strip().split("=") for s in line.split(',')]
             param_dict_list.append({k:v for [k, v] in pairs})
     return(param_dict_list)
 
@@ -81,14 +81,14 @@ def read_validationObjectiveMatrix_file(fn):
         re_string = '\w?,\w?'.join(['"id\_(\d*)"', '"(\d*)"']  + ['"([0-9.]*)"']*num_configs)
         for line in fh.readlines():
             match = (re.match(re_string, line))
-            values[int(match.group(1))] = map(float,map(match.group, range(3,3+num_configs)))
+            values[int(match.group(1))] = list(map(float,list(map(match.group, list(range(3,3+num_configs))))))
     return(values)
 
 
 def read_instances_file(fn):
     with open(fn,'r') as fh:
         instance_names = fh.readlines()
-    return(map(lambda s: s.strip().split(), instance_names))
+    return([s.strip().split() for s in instance_names])
 
 
 def read_instance_features_file(fn):
@@ -108,4 +108,4 @@ if __name__ == "__main__":
     #print(read_paramstrings_file(   '/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat/out/scenario/state-run2/paramstrings-it126.txt'))
     #print(read_run_and_results_file('/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat/out/scenario/state-run2/runs_and_results-it126.csv'))
     #print(read_validationCallString_file('/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat/out/scenario/validationCallStrings-traj-run-1-walltime.csv'))
-    print(read_validationObjectiveMatrix_file('/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat/out/scenario/validationObjectiveMatrix-traj-run-1-walltime.csv'))
+    print((read_validationObjectiveMatrix_file('/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat/out/scenario/validationObjectiveMatrix-traj-run-1-walltime.csv')))
