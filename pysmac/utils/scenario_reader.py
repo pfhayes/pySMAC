@@ -4,7 +4,7 @@ def read_scenario_file(fn):
         for line in fh.readlines():
             if "=" in line:
                 tmp = line.split("=")
-                tmp = map(lambda s: ' '.join(s.split()), tmp)
+                tmp = [' '.join(s.split()) for s in tmp]
             else:
                 tmp = line.split()
             scenario_dict[tmp[0]] = " ".join(tmp[1:])

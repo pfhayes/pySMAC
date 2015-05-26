@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 
 import os
 import glob
@@ -74,7 +74,7 @@ class SMAC_analyzer(object):
         
         # for now, we only load the incumbents for each run
         
-        for i in self.data.keys():
+        for i in list(self.data.keys()):
             try:
                 # with test instances, the validation runs are loaded
                 if self.validation:
@@ -124,10 +124,10 @@ class SMAC_analyzer(object):
             raise
 
     def get_item_all_runs(self, func = lambda d: d['function value']):
-        return (map(lambda run: map(func, run[1:]), self.data_all_runs))
+        return ([list(map(func, run[1:])) for run in self.data_all_runs])
     
     def get_item_single_run(self, run_id, func = lambda d: d['function value']):
-        return map(func,self.data_all_runs[run_id][1:])
+        return list(map(func,self.data_all_runs[run_id][1:]))
     
     def plot_run_performance(self, runs = None):    
 
@@ -135,8 +135,8 @@ class SMAC_analyzer(object):
         
         for i in range(len(self.data_all_runs)):
             y = self.get_item_single_run(i)
-            x = range(len(y))
-            plot.scatter(self.data_all_runs[i][0], x,y, self.get_item_single_run(i, func = lambda d: '\n'.join(['%s=%s'%(k,v) for (k,v) in d['parameter settings'].items() ]) ), color = self.cm[i])
+            x = list(range(len(y)))
+            plot.scatter(self.data_all_runs[i][0], x,y, self.get_item_single_run(i, func = lambda d: '\n'.join(['%s=%s'%(k,v) for (k,v) in list(d['parameter settings'].items()) ]) ), color = self.cm[i])
         
         plot.add_datacursor()
         plot.show()
@@ -174,7 +174,7 @@ class SMAC_analyzer(object):
         
         for i in range(len(self.trajectory)):
             color='red' if i == self.incumbent_index else 'blue'
-            ax.scatter( i, self.trajectory[i][0], color=color, label = '\n'.join(['%s = %s' % (k,v) for (k, v) in self.trajectory[i][2].items()]))
+            ax.scatter( i, self.trajectory[i][0], color=color, label = '\n'.join(['%s = %s' % (k,v) for (k, v) in list(self.trajectory[i][2].items())]))
 
         datacursor(
             bbox=dict(alpha=1),
@@ -186,7 +186,7 @@ class SMAC_analyzer(object):
             hide_button = 3)
         
         fig, ax = plt.subplots()
-        incumbents = np.minimum.accumulate(map(itemgetter(0), self.trajectory))
-        ax.step(range(len(incumbents)), incumbents)
+        incumbents = np.minimum.accumulate(list(map(itemgetter(0), self.trajectory)))
+        ax.step(list(range(len(incumbents))), incumbents)
         
         plt.show()

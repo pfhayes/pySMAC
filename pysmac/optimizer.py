@@ -117,11 +117,11 @@ class SMAC_optimizer(object):
 
         # adjust the seed variable
         if seed is None:
-            seed = range(num_runs)
+            seed = list(range(num_runs))
         elif isinstance(seed, int) and num_runs == 1:
             seed = [seed]
         elif isinstance(seed, int) and num_runs > 1:
-            seed = range(seed, seed+num_runs)
+            seed = list(range(seed, seed+num_runs))
         elif isinstance(seed, list) or isinstance(seed, tuple):
             if len(seed) != num_runs:
                 raise ValueError("You have to specify a seed for every instance!")
@@ -171,7 +171,7 @@ class SMAC_optimizer(object):
         
         additional_options_fn =scenario_fn[:-4]+'.advanced' 
         with open(scenario_fn,'w') as fh, open(additional_options_fn, 'w') as fg:
-            for name, value in self.smac_options.items():
+            for name, value in list(self.smac_options.items()):
                 if name in scenario_options:
                     fh.write('%s %s\n'%(name, value))
                 else:
@@ -182,7 +182,7 @@ class SMAC_optimizer(object):
 
         # create a pool of workers and make'em work
         pool = MyPool(num_procs)
-        argument_lists = map(lambda s: [scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, remote_smac.smac_classpath(),  num_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic']], seed)
+        argument_lists = [[scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, remote_smac.smac_classpath(),  num_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic']] for s in seed]
         
         pool.map(remote_smac.remote_smac_function, argument_lists)
         
@@ -201,7 +201,7 @@ class SMAC_optimizer(object):
                     csv_r = csv.reader(csv_fh)
                     for row in csv_r:
                         incumbent = row
-                    run_incumbents.append((float(incumbent[1]), map(lambda s: s.strip(" "), incumbent[5:])))
+                    run_incumbents.append((float(incumbent[1]), [s.strip(" ") for s in incumbent[5:]]))
                 except:
                     pass
         

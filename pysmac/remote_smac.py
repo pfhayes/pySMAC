@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import, unicode_literals
+
 
 import sys
 import os
@@ -20,7 +20,7 @@ import pysmac.utils.limit_resources
 SMAC_VERSION = "smac-v2.08.00-master-731"
 
 try:
-    str=unicode #Python 2 backward compatibility
+    str=str #Python 2 backward compatibility
 except NameError:
     pass        #Python 3 case
 
@@ -69,7 +69,7 @@ def process_parameter_definitions(parameter_dict):
     pcs_strings = []
     parser_dict={}
     
-    for k,v in parameter_dict.items():
+    for k,v in list(parameter_dict.items()):
         line, dtype = process_single_parameter_definition(k,v)
         parser_dict[k] = dtype
         pcs_strings.append(line)
@@ -222,7 +222,7 @@ class remote_smac(object):
         
         # for propper printing, we have to convert the status into unicode
         tmp['status'] = tmp['status'].decode()
-        s = u'Result for SMAC: {0[status]}, {0[runtime]}, 0, {0[value]}, 0\
+        s = 'Result for SMAC: {0[status]}, {0[runtime]}, 0, {0[value]}, 0\
             '.format(tmp)
         self.__logger.debug(s)
         self.__conn.sendall(s.encode())
