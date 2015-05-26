@@ -20,9 +20,10 @@ def subprocess_func(func, pipe, mem_in_mb, cpu_time_limit_in_s, wall_time_limit_
         
         if (signum == signal.SIGXCPU):
             logger.debug("CPU time exceeded, aborting!")
-        elif (signum == signal.SIGALARM):
+        elif (signum == signal.SIGALRM):
             logger.debug("Wallclock time exceeded, aborting!")
-            
+        else:
+            logger.debug("Hmmm...that signal is weired")
         raise abort_function
     
     signal.signal(signal.SIGALRM, handler)
