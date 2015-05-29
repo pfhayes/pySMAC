@@ -109,8 +109,9 @@ class SMAC_optimizer(object):
         
         num_instances = None if (num_instances is None) else int(num_instances)
         
-        if ((num_instances < 1) and (num_instances is not None)):
-            raise ValueError('The number of instances must be positive!')
+        if (num_instances is not None):
+            if (num_instances < 1):
+                raise ValueError('The number of instances must be positive!')
 
         num_procs = int(num_procs)
         pcs_string, parser_dict = remote_smac.process_parameter_definitions(parameter_dict)

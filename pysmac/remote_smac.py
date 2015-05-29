@@ -14,7 +14,7 @@ import multiprocessing
 
 import time
 
-import pysmac.utils.limit_resources
+import pynisher
 
 
 SMAC_VERSION = "smac-v2.08.00-master-731"
@@ -178,6 +178,8 @@ class remote_smac(object):
                 fconn = self.__conn.makefile('r') 
                 config_str = fconn.readline()
                 break
+            #except InterruptedError:
+            #    continue
             except socket.timeout:
                 # if smac already terminated, there is nothing else to do
                 if self.__subprocess.poll() is not None:
@@ -186,6 +188,8 @@ class remote_smac(object):
                 #otherwise there is funny business going on!
                 else:
                     self.__logger.debug("SMAC has not responded yet, but is still alive. Will keep waiting!")
+            except:
+                raise
 
         self.__logger.debug("SMAC message: %s"%config_str)
         
@@ -266,7 +270,7 @@ def remote_smac_function(only_arg):
             current_t_limit = int(ceil(config_dict.pop('cutoff_time')))
 
             # execute the function and measure the time it takes to evaluate
-            wrapped_function = pysmac.utils.limit_resources.enforce_limits(
+            wrapped_function = pynisher.enforce_limits(
                 mem_in_mb=mem_limit_function,
                 cpu_time_in_s=current_t_limit,
                 wall_time_in_s=10*current_t_limit,
