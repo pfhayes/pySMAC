@@ -46,7 +46,7 @@ setup(
     name = "pysmac",
     version = "0.9",
     packages = find_packages(),
-    install_requires = ['docutils>=0.3', 'setuptools', 'numpy', 'matplotlib', 'pynisher'],
+    install_requires = ['docutils>=0.3', 'setuptools', 'numpy', 'matplotlib', 'pynisher>=0.1.1'],
     dependency_links=['https://github.com/sfalkner/pynisher/archive/master.zip#egg=pynisher'],
     #dependency_links=['https://github.com/sfalkner/pynisher/master'],
     author = "Stefan Falkner and Tobias Domhan (python wrapper). Frank Hutter, Holger Hoos, Kevin Leyton-Brown, Kevin Murphy and Steve Ramage (SMAC)",
