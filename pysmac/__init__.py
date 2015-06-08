@@ -8,7 +8,7 @@ from pysmac.optimizer import *
 def check_java_version():
     import re
     from subprocess import STDOUT, check_output
-    out = check_output(["java", "-version"], stderr=STDOUT).strip().split(b"\n")
+    out = check_output(["java", "-Xmx128m", "-version"], stderr=STDOUT).strip().split(b"\n")
     if len(out) < 1:
         print("Failed checking Java version. Make sure Java version 7 or greater is installed.")
         return False

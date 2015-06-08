@@ -131,7 +131,8 @@ class remote_smac(object):
         cmds  = ["java"]
         if memory_limit is not None:
             cmds += ["-Xmx%im"%memory_limit]
-        cmds +=    ["-cp",
+        cmds +=    ["-XX:ParallelGCThreads=4",
+                "-cp",
                 class_path,
                 "ca.ubc.cs.beta.smac.executors.SMACExecutor",
                 "--scenario-file", scenario_fn,
