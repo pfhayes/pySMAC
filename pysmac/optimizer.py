@@ -1,3 +1,5 @@
+from __future__ import print_function, division, absolute_import
+
 import tempfile
 import os
 import shutil
@@ -84,9 +86,10 @@ class SMAC_optimizer(object):
             'console-log-level': 'OFF',
             'abort-on-first-run-crash': False,
             'overall_obj': 'MEAN',
-            'scenario_fn': 'scenario.dat' # NOT A SMAC OPTION, but allows to
+            'scenario_fn': 'scenario.dat', # NOT A SMAC OPTION, but allows to
                                           # change the standard name (used for 
                                           # in SpySMAC)
+            'java_executable': 'java'
             }
         if debug:
             self.smac_options['console-log-level']='INFO'
@@ -102,16 +105,16 @@ class SMAC_optimizer(object):
     # conditionals and forbidden clauses
     def minimize(self, func, max_evaluations, parameter_dict, 
             conditional_clauses = [], forbidden_clauses=[], 
-            num_instances = None, num_test_instances = None,
+            num_train_instances = None, num_test_instances = None,
             seed = None,  num_procs = 1, num_runs = 1,
             mem_limit_function_mb=None, t_limit_function_s= None):
         
         
-        num_instances = None if (num_instances is None) else int(num_instances)
+        num_train_instances = None if (num_train_instances is None) else int(num_train_instances)
         
-        if (num_instances is not None):
-            if (num_instances < 1):
-                raise ValueError('The number of instances must be positive!')
+        if (num_train_instances is not None):
+            if (num_train_instances < 1):
+                raise ValueError('The number of training instances must be positive!')
 
         num_procs = int(num_procs)
         pcs_string, parser_dict = remote_smac.process_parameter_definitions(parameter_dict)
@@ -140,7 +143,7 @@ class SMAC_optimizer(object):
             fh.write("\n".join(pcs_string + conditional_clauses + forbidden_clauses))
         
         #create and fill the instance files
-        tmp_num_instances = 1 if num_instances is None else num_instances
+        tmp_num_instances = 1 if num_train_instances is None else num_train_instances
         with open(self.smac_options['instances'], 'w') as fh:
             for i in range(tmp_num_instances):
                 fh.write("id_%i\n"%i)
@@ -155,6 +158,8 @@ class SMAC_optimizer(object):
 
         # create and fill the scenario file
         scenario_fn = os.path.join(self.working_directory,self.smac_options.pop('scenario_fn'))
+        java_executable = self.smac_options.pop('java_executable');
+        
         scenario_options = {'algo', 'algo-exec', 'algoExec',
                             'algo-exec-dir', 'exec-dir', 'execDir','execdir',
                             'deterministic', 'algo-deterministic',
@@ -183,7 +188,7 @@ class SMAC_optimizer(object):
 
         # create a pool of workers and make'em work
         pool = MyPool(num_procs)
-        argument_lists = [[scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, remote_smac.smac_classpath(),  num_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic']] for s in seed]
+        argument_lists = [[scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, remote_smac.smac_classpath(),  num_train_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic'], java_executable] for s in seed]
         
         pool.map(remote_smac.remote_smac_function, argument_lists)
         

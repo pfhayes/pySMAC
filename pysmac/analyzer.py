@@ -1,10 +1,9 @@
-
+from __future__ import print_function, division, absolute_import
 
 import os
 import glob
 import six
 import re
-#import operator
 
 
 import numpy as np

@@ -1,4 +1,4 @@
-
+from __future__ import print_function, division, absolute_import
 
 import sys
 import os
@@ -16,11 +16,10 @@ import time
 
 import pynisher
 
-
-SMAC_VERSION = "smac-v2.08.00-master-731"
+SMAC_VERSION = "smac-v2.10.02-master-773"
 
 try:
-    str=str #Python 2 backward compatibility
+    str=unicode #Python 2 backward compatibility
 except NameError:
     pass        #Python 3 case
 
@@ -112,7 +111,7 @@ class remote_smac(object):
     udp_timeout=1
     
     # Starts SMAC in IPC mode. SMAC will wait for udp messages to be sent.
-    def __init__(self, scenario_fn, additional_options_fn, seed, class_path, memory_limit, parser_dict):
+    def __init__(self, scenario_fn, additional_options_fn, seed, class_path, memory_limit, parser_dict, java_executable):
         self.__parser = parser_dict
         self.__subprocess = None
         self.__logger = multiprocessing.get_logger()
@@ -128,7 +127,7 @@ class remote_smac(object):
         self.__logger.debug('picked port %i'%self.__port)
 
         # build the java command
-        cmds  = ["java"]
+        cmds  = java_executable.split()
         if memory_limit is not None:
             cmds += ["-Xmx%im"%memory_limit]
         cmds +=    ["-XX:ParallelGCThreads=4",
@@ -240,12 +239,12 @@ def remote_smac_function(only_arg):
     
         scenario_file, additional_options_fn, seed, function, parser_dict,\
           memory_limit_smac_mb, class_path, num_instances, mem_limit_function,\
-          t_limit_function, deterministic = only_arg
+          t_limit_function, deterministic, java_executable = only_arg
     
         logger = multiprocessing.get_logger()
     
         smac = remote_smac(scenario_file, additional_options_fn, seed, 
-                               class_path, memory_limit_smac_mb,parser_dict)
+                               class_path, memory_limit_smac_mb,parser_dict, java_executable)
     
         logger.debug('Started SMAC subprocess')
     
@@ -305,7 +304,7 @@ def remote_smac_function(only_arg):
             if res is not None:
                 try:
                     logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res), str(res['runtime'])))
-                except (TypeError, AttributeError, KeyError):
+                except (TypeError, AttributeError, KeyError, IndexError):
                     logger.debug('iteration %i:function value %s, computed in %s seconds'%(num_iterations, str(res),cpu_time))
                 except:
                     raise
@@ -322,7 +321,7 @@ def remote_smac_function(only_arg):
                 # check if it recorded some runtime by itself and use that
                 if res['runtime'] > current_t_limit - 2e-2: # mini slack to account for limited precision of cputime measurement
                     status=b'TIMEOUT'
-            except (AttributeError, TypeError, KeyError):
+            except (AttributeError, TypeError, KeyError, IndexError):
                 # if not, we have to use our own time measurements here
                 if (res is None) and ((cpu_time > current_t_limit - 2e-2) or
                                             (wall_time >= 10*current_t_limit)):
