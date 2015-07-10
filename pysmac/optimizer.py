@@ -26,12 +26,10 @@ class SMAC_optimizer(object):
         else:
             self.__logger.setLevel(logging.WARNING)
         
-        
         self.__t_limit_total_s = 0 if t_limit_total_s is None else int(t_limit_total_s)
         self.__mem_limit_smac_mb = None if (mem_limit_smac_mb is None) else int(mem_limit_smac_mb)
             
         self.__persistent_files = persistent_files
-        
         
         # some basic consistency checks
 
@@ -86,10 +84,13 @@ class SMAC_optimizer(object):
             'console-log-level': 'OFF',
             'abort-on-first-run-crash': False,
             'overall_obj': 'MEAN',
-            'scenario_fn': 'scenario.dat', # NOT A SMAC OPTION, but allows to
+            'scenario_fn': 'scenario.dat', # NOT a SMAC OPTION, but allows to
                                           # change the standard name (used for 
                                           # in SpySMAC)
-            'java_executable': 'java'
+            'java_executable': 'java'     # NOT a SMAC OPTION; allows to 
+                                          # specify a different java
+                                          # binary and can be abused to 
+                                          # pass additional arguments to it
             }
         if debug:
             self.smac_options['console-log-level']='INFO'
@@ -106,15 +107,30 @@ class SMAC_optimizer(object):
     def minimize(self, func, max_evaluations, parameter_dict, 
             conditional_clauses = [], forbidden_clauses=[], 
             num_train_instances = None, num_test_instances = None,
+            train_instance_features = None,
             seed = None,  num_procs = 1, num_runs = 1,
             mem_limit_function_mb=None, t_limit_function_s= None):
         
         
+        # adjust the number of training instances
         num_train_instances = None if (num_train_instances is None) else int(num_train_instances)
         
         if (num_train_instances is not None):
             if (num_train_instances < 1):
                 raise ValueError('The number of training instances must be positive!')
+            # check if instance features are provided
+            if (train_instance_features is not None):
+                # make sure it's the right number of instances
+                if (len(train_instance_features) != num_train_instances):
+                    raise ValueError("You have to provide features for every training instance!")
+                # and the same number of features
+                nf = len(train_instance_features[0])
+                for feature_vector in  train_instance_features:
+                    if (len(train_instance_features) != nf):
+                        raise ValueError("You have to specify the same number of features for every instance!")
+                self.smac_options['feature_file'] = os.path.join(self.working_directory ,'instances.dat')
+                
+
 
         num_procs = int(num_procs)
         pcs_string, parser_dict = remote_smac.process_parameter_definitions(parameter_dict)
@@ -128,7 +144,7 @@ class SMAC_optimizer(object):
             seed = list(range(seed, seed+num_runs))
         elif isinstance(seed, list) or isinstance(seed, tuple):
             if len(seed) != num_runs:
-                raise ValueError("You have to specify a seed for every instance!")
+                raise ValueError("You have to specify a seed for every run!")
         else:
             raise ValueError("The seed variable could not be properly processed!")
         
@@ -148,6 +164,21 @@ class SMAC_optimizer(object):
             for i in range(tmp_num_instances):
                 fh.write("id_%i\n"%i)
         
+        # create and fill the feature file
+        if (training_instance_features is not None):
+			with open(self.smac_options['feature_file'], 'w') as fh:
+				#write a header
+				tmp = ['instance_name'] + list(map(lambda i: 'feature{}'.format(i), range(len(training_instance_features[0]))))
+				fh.write(",".join(tmp);
+				fh.write("\n");
+
+				# and then the actual features
+				for i in len(train_instance_features):
+					tmp = ['id_{}'.format(i)] + ["{}".format(f) for f in train_instace_features[i]]
+					fh.write(",".join(tmp))
+					fh.write("\n");
+        
+
         if num_test_instances is not None:
             self.smac_options['validate-only-last-incumbent'] = True
             self.smac_options['validation'] = True
