@@ -12,6 +12,9 @@ import pysmac.utils.smac_output_readers as readers
 
 
 def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn = "instances.txt" , feat_fn = "instance-features.txt" , ps_fn = "paramstrings-it*.txt"):    
+    """
+    .. todo:: add docmunentation
+    """
     print(("reading {}".format(directory)))
     configs = readers.read_paramstrings_file(glob.glob(os.path.join(directory,ps_fn))[0])
     instance_names = readers.read_instances_file(glob.glob(os.path.join(directory,inst_fn))[0])
@@ -29,6 +32,9 @@ def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn 
 
 def state_merge(state_run_directory_list, destination, 
                 check_scenario_files = True, drop_duplicates = False):
+    """
+    .. todo:: add docmunentation
+    """
 
     configurations = {}
     instances = {}

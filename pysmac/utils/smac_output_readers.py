@@ -6,9 +6,12 @@ import operator
 import numpy as np
 
 
-# taken from 
-# http://stackoverflow.com/questions/21708192/how-do-i-use-the-json-module-to-read-in-one-json-object-at-a-time/21709058#21709058
+
 def json_parse(fileobj, decoder=json.JSONDecoder(), buffersize=2048):
+    """ Small function to parse a file containing JSON objects separated by a new line. This format is used in the live-rundata-xx.json files produces by SMAC
+    
+    taken from http://stackoverflow.com/questions/21708192/how-do-i-use-the-json-module-to-read-in-one-json-object-at-a-time/21709058#21709058
+    """
     buffer = ''
     for chunk in iter(functools.partial(fileobj.read, buffersize), ''):
         buffer += chunk
@@ -31,6 +34,17 @@ def json_parse(fileobj, decoder=json.JSONDecoder(), buffersize=2048):
 # TIMEOUT -> -1
 # ELSE ----> -2
 def read_runs_and_results_file(fn):
+    """ Converting a runs_and_results file into a numpy array.
+    
+    Almost all entries in a runs_and_results file are numeric to begin with.
+    Only the 14th column contains the status which is encoded as ints by SAT = 1,
+    UNSAT = 0, TIMEOUT = -1, everything else = -2.
+    
+    .. todo::
+       explain every column
+    
+    :returns: numpy_array(dtype = double) -- the data
+    """
     # to convert everything into floats, the run result needs to be mapped
     def map_run_result(res):
          if b'TIMEOUT' in res:  return(0)
@@ -47,6 +61,16 @@ def read_runs_and_results_file(fn):
 # The returned list contains dictionaries with
 # 'parameter_name': 'value_as_string' pairs
 def read_paramstrings_file(fn):
+    """ Function to read a paramstring file.
+    Every line in this file corresponds to a full configuration. Everything is
+    stored as strings and without knowledge about the pcs, converting that into
+    any other type would involve guessing, which we shall not do here.
+    
+    :param fn: the name of the paramstring file
+    :type fn: str
+    :returns: dict -- with key-value pairs 'parameter name'-'value as string'
+    
+    """
     param_dict_list = []
     with open(fn,'r') as fh:
         for line in fh.readlines():
@@ -60,6 +84,10 @@ def read_paramstrings_file(fn):
 # Reads a validationCallString file and returns a list of dictonaries
 # Each dictionary consists of parameter_name: value_as_string entries
 def read_validationCallStrings_file(fn):
+    """Reads a validationCallString file into a list of dictionaries.
+    
+    :returns: list of dicts -- each dictionary contains 'parameter name' and 'parameter value as string' key-value pairs
+    """
     param_dict_list = []
     with open(fn,'r') as fh:
         for line in fh.readlines()[1:]: # skip header line
@@ -73,6 +101,10 @@ def read_validationCallStrings_file(fn):
 
 
 def read_validationObjectiveMatrix_file(fn):
+    """
+    .. todo::
+        add documentation for this one
+    """
     values = {}
     
     with open(fn,'r') as fh:
@@ -86,26 +118,25 @@ def read_validationObjectiveMatrix_file(fn):
 
 
 def read_instances_file(fn):
+    """
+    Reads the instance names from an instace file
+    
+    :returns: list -- each element is a list where the first element is the instance name followed by additional information for the specific instance.
+    """
     with open(fn,'r') as fh:
         instance_names = fh.readlines()
     return([s.strip().split() for s in instance_names])
 
 
 def read_instance_features_file(fn):
+    """Function to read a instance_feature file.
+    
+    :returns: tuple -- first entry is a list of the feature names, second one is a dict with 'instance name' 'numpy array containing the features'
+    """
     instances = {}
     with open(fn,'r') as fh:
         lines = fh.readlines()
         for line in lines[1:]:
             tmp = line.strip().split(",")
-            instances[tmp[0]] = ",".join(tmp[1:])
-            #print instances[tmp[0]]
-    return(lines[0], instances)
-
-
-
-
-if __name__ == "__main__":
-    #print(read_paramstrings_file(   '/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat/out/scenario/state-run2/paramstrings-it126.txt'))
-    #print(read_run_and_results_file('/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat/out/scenario/state-run2/runs_and_results-it126.csv'))
-    #print(read_validationCallString_file('/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat/out/scenario/validationCallStrings-traj-run-1-walltime.csv'))
-    print((read_validationObjectiveMatrix_file('/home/sfalkner/repositories/bitbucket/pysmac2/spysmac_on_minisat/out/scenario/validationObjectiveMatrix-traj-run-1-walltime.csv')))
+            instances[tmp[0]] = np.array(join(tmp[1:]),dtype=np.double)
+    return(lines[0].split(",")[1:], instances)

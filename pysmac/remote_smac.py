@@ -16,6 +16,9 @@ import time
 
 import pynisher
 
+
+
+
 SMAC_VERSION = "smac-v2.10.02-master-773"
 
 try:
@@ -24,11 +27,14 @@ except NameError:
     pass        #Python 3 case
 
 
+
 # takes a name and a tuple defining one parameter, registers that with the parser
 # and returns the corresponding string for the SMAC pcs file and the type of the
 # variable for later casting
 def process_single_parameter_definition(name, specification):
-    # if this is the first parameter, set up the argument parser for SMACs output
+    """
+    A helper function to process a single parameter definition for further communication with SMAC.
+    """
     
     string = '%s '%name
 
@@ -65,6 +71,16 @@ def process_single_parameter_definition(name, specification):
 # takes the users parameter definition and converts into lines for the pcs file
 # and also creates a dictionary for parsing smacs output
 def process_parameter_definitions(parameter_dict):
+    """
+    A helper function to process all parameter definitions conviniently with just one call.
+    
+    This function takes the parametr definitions from the user, converts 
+    them into lines for SMAC's PCS format, and also creates a dictionary
+    later used in the comunication with the SMAC process.
+    
+    :param paramer_dict: The user defined parameter configuration space
+    
+    """
     pcs_strings = []
     parser_dict={}
     
@@ -77,41 +93,20 @@ def process_parameter_definitions(parameter_dict):
 
 
 
-# function that gathers all information to build the java class path
-def smac_classpath():
-    logger = multiprocessing.get_logger()
-    
-    smac_folder = resource_filename("pysmac", 'smac/%s' % SMAC_VERSION)
-    # hack for development :)
-    # smac_folder = './%s/'%SMAC_VERSION
-    
-    smac_conf_folder = os.path.join(smac_folder, "conf")
-    smac_patches_folder = os.path.join(smac_folder, "patches")
-    smac_lib_folder = os.path.join(smac_folder, "lib")
-
-
-    classpath = [fname for fname in os.listdir(smac_lib_folder) if fname.endswith(".jar")]
-    classpath = [os.path.join(smac_lib_folder, fname) for fname in classpath]
-    classpath = [os.path.abspath(fname) for fname in classpath]
-    classpath.append(os.path.abspath(smac_conf_folder))
-    classpath.append(os.path.abspath(smac_patches_folder))
-
-    # Windows compability
-    classpath = ';'.join(classpath) if os.name == 'nt' else ':'.join(classpath)
-
-    logger.debug("SMAC classpath: %s", classpath)
-
-    return classpath
-
-
-
-
-
 class remote_smac(object):
-    udp_timeout=1
+    """
+    The class responsible for the TCP/IP communication with a SMAC instance.
+    """
     
-    # Starts SMAC in IPC mode. SMAC will wait for udp messages to be sent.
+    udp_timeout=1
+    """
+    The default value for a timeout for the socket
+    """
+    
     def __init__(self, scenario_fn, additional_options_fn, seed, class_path, memory_limit, parser_dict, java_executable):
+        """
+        Starts SMAC in IPC mode. SMAC will wait for udp messages to be sent.
+        """
         self.__parser = parser_dict
         self.__subprocess = None
         self.__logger = multiprocessing.get_logger()
@@ -158,6 +153,7 @@ class remote_smac(object):
                 self.__subprocess = subprocess.Popen(cmds, stdout = fnull, stderr = fnull)
 
     def __del__(self):
+        """ Destructor makes sure that the SMAC process is terminated if necessary. """
         # shut the subprocess down on 'destruction'
         if not (self.__subprocess is None):
             self.__subprocess.poll()
@@ -169,7 +165,14 @@ class remote_smac(object):
 
 
     def next_configuration(self):
+        """ Method that queries the next configuration from SMAC.
         
+        Connects to the socket, reads the message from SMAC, and
+        converts into a proper Python representation (using the proper
+        types). It also checks whether the SMAC subprocess is still alive.
+        
+        :returns: either a dictionary with a configuration, or None if SMAC has terminated 
+        """
         while True:
             try:
                 self.__logger.debug('trying to retrieve the next configuration from SMAC')
@@ -211,6 +214,17 @@ class remote_smac(object):
         return (config_dict)
     
     def report_result(self, value, runtime, status = b'CRASHED'):
+        """Method to report the latest run results back to SMAC.
+        
+        This method communicates the results from the last run back to SMAC.
+        
+        :param value: If float, this is the quality value from the last configuration. If dictionary, the key values 'value', 'status', and 'runtime' are used.
+        :type value: float or dict
+        :param runtime: The total runtime of the particular run in seconds.
+        :type runtime: float
+        :param status: The status of the run. Allowed values are (UN)SAT, TIMEOUT, CRASH, ABORT. Consult the SMAC manual (Section 5.1.2) for further details.
+        :type status: str
+        """
         tmp ={'status': status, 'runtime': runtime}
         
         # value is only None, if the function call was unsuccessful
@@ -235,8 +249,18 @@ class remote_smac(object):
 
 
 def remote_smac_function(only_arg):
-    try:
+    """
+    The function that every worker from the multiprocessing pool calls
+    to perform a separate SMAC run.
     
+    This function is not part of the API that user should access, but
+    is part of the internals of pySMAC. Due to the limitations of the
+    multiprocessing module, it can only take one argument which is a 
+    list containing important arguments in a very specific order. Check
+    the source code if you want to learn more.
+    
+    """
+    try:
         scenario_file, additional_options_fn, seed, function, parser_dict,\
           memory_limit_smac_mb, class_path, num_instances, mem_limit_function,\
           t_limit_function, deterministic, java_executable = only_arg

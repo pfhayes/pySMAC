@@ -13,12 +13,20 @@ import csv
 
 from . import remote_smac
 from .utils.multiprocessing_wrapper import MyPool
+from pysmac.utils.java_helper import check_java_version, smac_classpath
 
 
 class SMAC_optimizer(object):
-   
-    # collects smac specific data that goes into the scenario file
+    """
+    The main class of pySMAC instanciated by the user.
+    
+    
+    """
+    # collects smac specific data that go into the scenario file
     def __init__(self, deterministic = True, t_limit_total_s=None, mem_limit_smac_mb=None, working_directory = None, persistent_files=False, debug = False):
+        """
+        Constructor with some minimal information about some basic parameters for the run.
+        """
         
         self.__logger = multiprocessing.log_to_stderr()
         if debug:
@@ -96,21 +104,29 @@ class SMAC_optimizer(object):
             self.smac_options['console-log-level']='INFO'
 
 
-    # after SMAC finishes, some cleanup has to be done depending on persistent_files
+
     def __del__(self):
+        """
+        Destructor cleaning up after SMAC finishes depending on the persistent_files flag.
+        """
         if not self.__persistent_files:
             shutil.rmtree(self.working_directory)
     
     
-    # find the minimum given a function handle and a specification of its parameters and optional
-    # conditionals and forbidden clauses
+
     def minimize(self, func, max_evaluations, parameter_dict, 
             conditional_clauses = [], forbidden_clauses=[], 
             num_train_instances = None, num_test_instances = None,
             train_instance_features = None,
             seed = None,  num_procs = 1, num_runs = 1,
             mem_limit_function_mb=None, t_limit_function_s= None):
-        
+        """
+        Function invoked to perform the actual minimization given all necessary information.
+        """
+
+        # find the minimum given a function handle and a specification of its parameters and optional
+        # conditionals and forbidden clauses
+
         
         # adjust the number of training instances
         num_train_instances = None if (num_train_instances is None) else int(num_train_instances)
@@ -165,18 +181,18 @@ class SMAC_optimizer(object):
                 fh.write("id_%i\n"%i)
         
         # create and fill the feature file
-        if (training_instance_features is not None):
-			with open(self.smac_options['feature_file'], 'w') as fh:
-				#write a header
-				tmp = ['instance_name'] + list(map(lambda i: 'feature{}'.format(i), range(len(training_instance_features[0]))))
-				fh.write(",".join(tmp);
-				fh.write("\n");
+        if (train_instance_features is not None):
+            with open(self.smac_options['feature_file'], 'w') as fh:
+                #write a header
+                tmp = ['instance_name'] + list(map(lambda i: 'feature{}'.format(i), range(len(train_instance_features[0]))))
+                fh.write(",".join(tmp));
+                fh.write("\n");
 
-				# and then the actual features
-				for i in len(train_instance_features):
-					tmp = ['id_{}'.format(i)] + ["{}".format(f) for f in train_instace_features[i]]
-					fh.write(",".join(tmp))
-					fh.write("\n");
+                # and then the actual features
+                for i in len(train_instance_features):
+                    tmp = ['id_{}'.format(i)] + ["{}".format(f) for f in train_instace_features[i]]
+                    fh.write(",".join(tmp))
+                    fh.write("\n");
         
 
         if num_test_instances is not None:
@@ -187,9 +203,14 @@ class SMAC_optimizer(object):
                 for i in range(tmp_num_instances, tmp_num_instances + num_test_instances):
                     fh.write("id_%i\n"%i)
 
+		# make sure the java executable is callable and up-to-date
+        java_executable = self.smac_options.pop('java_executable');
+        check_java_version(java_executable)
+
+
         # create and fill the scenario file
         scenario_fn = os.path.join(self.working_directory,self.smac_options.pop('scenario_fn'))
-        java_executable = self.smac_options.pop('java_executable');
+
         
         scenario_options = {'algo', 'algo-exec', 'algoExec',
                             'algo-exec-dir', 'exec-dir', 'execDir','execdir',
@@ -219,7 +240,7 @@ class SMAC_optimizer(object):
 
         # create a pool of workers and make'em work
         pool = MyPool(num_procs)
-        argument_lists = [[scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, remote_smac.smac_classpath(),  num_train_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic'], java_executable] for s in seed]
+        argument_lists = [[scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, smac_classpath(),  num_train_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic'], java_executable] for s in seed]
         
         pool.map(remote_smac.remote_smac_function, argument_lists)
         
