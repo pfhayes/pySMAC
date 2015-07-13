@@ -1,8 +1,12 @@
 import re
 
 def read_pcs(filename):
-    ''' reads pcs file format of SMAC (format according to version 2.08);
-        returns parameters as dict;    conditionals and forbiddens as lists '''
+    ''' Function to read a SMAC pcs file (format according to version 2.08).
+    
+    :param filename: name of the pcs file to be read
+    :type filename: str
+    :returns: tuple -- (parameters as a dict, conditionals as a list, forbiddens as a list)
+    '''
     
     num_regex = "[+\-]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?"
     FLOAT_REGEX = re.compile("^[ ]*(?P<name>[^ ]+)[ ]*\[(?P<range_start>%s)[ ]*,[ ]*(?P<range_end>%s)\][ ]*\[(?P<default>[^#]*)\](?P<misc>.*)$" %(num_regex,num_regex))
@@ -61,3 +65,27 @@ def read_pcs(filename):
                 forbiddens.append(line)
             
     return param_dict, conditions, forbiddens
+
+
+def read_scenario_file(fn):
+    """ Small helper function to read a SMAC scenario file.
+    
+    :returns : dict -- (key, value) pairs are (variable name, variable value)
+    """
+    scenario_dict = {}
+    with open(fn, 'r') as fh:
+        for line in fh.readlines():
+            #remove comments
+            if line.find("#") > -1:
+                line = line[:line.find("#")]
+            
+            # skip empty lines
+            if line  == "":
+                continue
+            if "=" in line:
+                tmp = line.split("=")
+                tmp = [' '.join(s.split()) for s in tmp]
+            else:
+                tmp = line.split()
+            scenario_dict[tmp[0]] = " ".join(tmp[1:])
+    return(scenario_dict)
