@@ -20,12 +20,37 @@ class SMAC_optimizer(object):
     """
     The main class of pySMAC instanciated by the user.
     
-    
+    This is the class a user instanciates to use SMAC. Constructing the
+    object does not start the minimization immediately. The user has to
+    call the method minimize for the actual optimization. This design
+    choice enables easy enough usage for novice users, but allows experts
+    to change many of SMAC's parameters by editing the 'smac_options' dict
     """
+
+
+    smac_options = {}
+    """ A dict associated with the optimizer object that controlls options
+    mainly for SMAC
+    """
+
+
+
     # collects smac specific data that go into the scenario file
     def __init__(self, deterministic = True, t_limit_total_s=None, mem_limit_smac_mb=None, working_directory = None, persistent_files=False, debug = False):
         """
-        Constructor with some minimal information about some basic parameters for the run.
+        
+        :param deterministic: whether the function to be minimized always returns the same value when called with the same parameters
+        :type deterministic: bool
+        :param t_limit_total_s: the total time budget (in seconds) for the optimization. None means that no wall clock time constraint is enforced.
+        :type t_limit_total_s: float
+        :param mem_limit_smac_mb: memory limit for the Java Runtime Environment in which SMAC will be executed. None means system default.
+        :type mem_limit_smac_mb: int
+        :param working_directory: directory where SMACs output files are stored. None means a temporary directory will be created via the tempfile module.
+        :type working_directory: str
+        :param persistent_files: whether or note these files persist beyond the runtime of the optimization.
+        :type persistent_files: bool
+        :param debug: set this to true for debug information (pySMAC and SMAC itself) logged to standard-out. 
+        :type debug: bool
         """
         
         self.__logger = multiprocessing.log_to_stderr()
@@ -103,16 +128,12 @@ class SMAC_optimizer(object):
         if debug:
             self.smac_options['console-log-level']='INFO'
 
-
-
     def __del__(self):
         """
         Destructor cleaning up after SMAC finishes depending on the persistent_files flag.
         """
         if not self.__persistent_files:
             shutil.rmtree(self.working_directory)
-    
-    
 
     def minimize(self, func, max_evaluations, parameter_dict, 
             conditional_clauses = [], forbidden_clauses=[], 
@@ -203,7 +224,7 @@ class SMAC_optimizer(object):
                 for i in range(tmp_num_instances, tmp_num_instances + num_test_instances):
                     fh.write("id_%i\n"%i)
 
-		# make sure the java executable is callable and up-to-date
+        # make sure the java executable is callable and up-to-date
         java_executable = self.smac_options.pop('java_executable');
         check_java_version(java_executable)
 

@@ -39,9 +39,19 @@ def read_runs_and_results_file(fn):
     Almost all entries in a runs_and_results file are numeric to begin with.
     Only the 14th column contains the status which is encoded as ints by SAT = 1,
     UNSAT = 0, TIMEOUT = -1, everything else = -2.
+    \n
+    +-------+----------------+
+    | Value | Representation |
+    +=======+================+
+    |SAT    |        1       |
+    +-------+----------------+
+    |UNSAT  |        0       |
+    +-------+----------------+
+    |TIMEOUT|       -1       |
+    +-------+----------------+
+    |Others |       -2       |
+    +-------+----------------+
     
-    .. todo::
-       explain every column
     
     :returns: numpy_array(dtype = double) -- the data
     """
@@ -101,9 +111,21 @@ def read_validationCallStrings_file(fn):
 
 
 def read_validationObjectiveMatrix_file(fn):
-    """
+    """ reads the run data of a validation run performed by SMAC.
+    
+    For cases with instances, not necessarily every instance is used during the
+    configuration phase to estimate a configuration's performance. If validation
+    is enabled, SMAC reruns parameter settings (usually just the final incumbent)
+    on the whole instance set/a designated test set. The data from those runs
+    is stored in separate files. This function reads one of these files.
+    
+    :param fn: the name of the validationObjectiveMatrix file
+    :type fn: str
+    
+    :returns: dict -- configuration ids as keys, list of performances on each instance as values.
+    
     .. todo::
-        add documentation for this one
+       testing of validation runs where more than the final incumbent is validated
     """
     values = {}
     

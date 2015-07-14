@@ -12,8 +12,27 @@ import pysmac.utils.smac_output_readers as readers
 
 
 def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn = "instances.txt" , feat_fn = "instance-features.txt" , ps_fn = "paramstrings-it*.txt"):    
-    """
-    .. todo:: add docmunentation
+    """ Helper function that can reads all information from a state_run folder.
+    
+    To get all information of a SMAC run, several different files have
+    to be read. This function provides a short notation for gathering
+    all data at once.
+    
+    :param directory: the location of the state_run_folder
+    :type directory: str
+    :param rar_fn: pattern to find the runs_and_results file
+    :type rar_fn: str
+    :param inst_fn: name of the instance file
+    :type inst_fn: str
+    :param feat_fn: name of the instance feature file. If this file is not found, pysmac assumes no intsance features.
+    :type feat_fn: str
+    :param ps_fn: name of the paramstrings file
+    :type ps_fn: str
+    
+    :returns: tuple -- (configurations returned by read_paramstring_file,\n
+        instance names returned by read_instance_file,\n
+        instance features returned by read_instance_features_file,\n
+        actual run data returned by read_runs_and_results_file)
     """
     print(("reading {}".format(directory)))
     configs = readers.read_paramstrings_file(glob.glob(os.path.join(directory,ps_fn))[0])
@@ -32,8 +51,22 @@ def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn 
 
 def state_merge(state_run_directory_list, destination, 
                 check_scenario_files = True, drop_duplicates = False):
-    """
-    .. todo:: add docmunentation
+    """ Function to merge multiple state_run directories into a single
+    run to be used in, e.g., the fANOVA.
+    
+    To take advantage of the data gathered in multiple independent runs,
+    the state_run folders have to be merged into a single directory that
+    resemble the same structure. This allows easy application of the
+    pyfANOVA on all run_and_results files.
+    
+    :param state_run_directory_list: list of state_run folders to be merged
+    :type state_run_directory_list: list of str
+    :param destination: a directory to store the merged data. The folder is created if needed, and already existing data in that location is silently overwritten.
+    :type destination: str
+    :param check_scenario_files: whether to ensure that all scenario files in all state_run folders are identical. This helps to avoid merging runs with different settings. Note: Command-line options given to SMAC are not compared here!
+    :type check_scenario_files: bool
+    :param drop_duplicates: Defines how to handle runs with identical configurations. For deterministic algorithms the function's response should be the same, so dropping duplicates is safe. Keep in mind that every duplicate effectively puts more weight on a configuration when estimating parameter importance.
+    :type drop_duplicates: bool
     """
 
     configurations = {}
@@ -124,7 +157,7 @@ def state_merge(state_run_directory_list, destination,
         else:
             raise
         
-    # create all files, overwriting exisating ones
+    # create all files, overwriting existing ones
     shutil.copy(pcs_files[0], destination)
     shutil.copy(scenario_files[0], destination)
         
