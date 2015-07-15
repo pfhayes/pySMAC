@@ -153,7 +153,7 @@ def read_instances_file(fn):
 def read_instance_features_file(fn):
     """Function to read a instance_feature file.
     
-    :returns: tuple -- first entry is a list of the feature names, second one is a dict with 'instance name' 'numpy array containing the features'
+    :returns: tuple -- first entry is a list of the feature names, second one is a dict with 'instance name' - 'numpy array containing the features' key-value pairs
     """
     instances = {}
     with open(fn,'r') as fh:

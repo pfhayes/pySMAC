@@ -36,34 +36,45 @@ def process_single_parameter_definition(name, specification):
     A helper function to process a single parameter definition for further communication with SMAC.
     """
     
-    string = '%s '%name
-
-    assert isinstance(specification, (list,tuple)), "The specification \"%s\" is not valid"%(specification,)
-    assert len(specification)>1, "The specification \"%s\" is too short"%(specification,)
-    dtype=str
+    data_type_mapping = {'integer': int, 'real': float}
+    
+    assert isinstance(specification, tuple), "The specification \"{}\" for {} is not valid".format(specification,name)
+    assert len(specification)>1, "The specification \"{}\" for {} is too short".format(specification,name)
+    
+    if specification[0] not in {'real', 'integer', 'ordinal', 'categorical'}:
+        raise ValueError("Type {} for {} not understood".format(specification[0], name))
+    
+    string = '{} {}'.format(name, specification[0])
 
     # numerical values
-    if isinstance(specification[0], (list, tuple)):
+    if specification[0] in {'real', 'integer'}:
+        dtype = data_type_mapping[specification[0]]
+        if len(specification[1])!= 2:
+            raise ValueError("Range {} for {} not valid for numerical parameter".format(specification[1], name))
+        if specification[1][0] >= specification[1][1]:
+            raise ValueErrror("Interval {} not not understood.".format(specification[1]))
+        if not (specification[1][0] <= specification[2] and specification[2] <= specification[1][1]):
+            raise ValueError("Default value for {} has to be in the specified range".format(name))
         
-        dtype=float
-        ao = set(specification[2:])
-        tmp_string=''
+        string += " [{0[0]}, {0[1]}] [{1}]".format(specification[1], specification[2])
+    
+        if ((len(specification) == 4) and specification[3] == 'log'):
+            if specification[1][0] <= 0:
+                raise ValueError("Range for {} cannot contain non-positive numbers.".format(name))
+            string += " log"
+    
+    # ordinal and categorical types
+    if (specification[0] in {'ordinal', 'categorical'}):
         
-        if 'int' in ao:
-            tmp_string +='i'
-            ao.remove('int')
-            dtype=int
-        if 'log' in ao:
-            tmp_string +='l'
-            ao.remove('log')
-        assert len(ao) == 0, "unknown option(s) %s"%(list(ao), )
-
-        string += '[ %s, %s] [%s] '%(str(dtype(specification[0][0])), str(dtype(specification[0][1])), str(dtype(specification[1]))) + tmp_string
-    #categorical values
-    elif isinstance(specification[0], set):
-        string += '{'+ ','.join(map(str,specification[0])) +'} [%s]'%specification[1]
-    else:
-        raise ValueError("Sorry, I don't understand the parameter specification: %s\n"%(specification,))
+        if specification[2] not in specification[1]:
+            raise ValueError("Default value {} for {} is not valid.".format(specification[2], name))
+        
+        # make sure all elements are of the same type
+        if (len(set(map(type, specification[1]))) > 1):
+            raise ValueError("Not all values of {} are of the same type!".format(name))
+        
+        dtype = type(specification[1][0])
+        string += " {"+",".join(map(str, specification[1])) + '}' + ('[{}]'.format(specification[2]))
 
     return string, dtype
 
