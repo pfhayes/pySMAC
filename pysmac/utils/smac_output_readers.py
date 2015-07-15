@@ -160,5 +160,5 @@ def read_instance_features_file(fn):
         lines = fh.readlines()
         for line in lines[1:]:
             tmp = line.strip().split(",")
-            instances[tmp[0]] = np.array(join(tmp[1:]),dtype=np.double)
+            instances[tmp[0]] = np.array(tmp[1:],dtype=np.double)
     return(lines[0].split(",")[1:], instances)
