@@ -217,7 +217,7 @@ def state_merge(state_run_directory_list, destination,
         with open(os.path.join(destination, 'instance-features.txt'),'w') as fh:
             fh.write(ff_header.pop())
             fh.write("\n")
-            sorted_features = [(instances[inst]['index'], inst + ',' + instances[inst]['features']) for inst in instances]
+            sorted_features = [(instances[inst]['index'], inst + ',' + ",".join(list(map(str, instances[inst]['features']))) ) for inst in instances]
             sorted_features.sort()
             fh.write('\n'.join([ t[1] for t in sorted_features]))
 
