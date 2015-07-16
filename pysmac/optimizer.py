@@ -10,9 +10,9 @@ import logging
 import csv
 
 
-
-from . import remote_smac
-from .utils.multiprocessing_wrapper import MyPool
+import pysmac.utils
+import pysmac.remote_smac as remote_smac
+from pysmac.utils.multiprocessing_wrapper import MyPool
 from pysmac.utils.java_helper import check_java_version, smac_classpath
 
 
@@ -275,19 +275,9 @@ class SMAC_optimizer(object):
         run_incumbents = []
         
         for s in seed:
-            with open( os.path.join(scenario_dir, 'traj-run-%i.txt'%s)) as csv_fh:
-                try:
-                    csv_r = csv.reader(csv_fh)
-                    for row in csv_r:
-                        incumbent = row
-                    run_incumbents.append((float(incumbent[1]), [s.strip(" ") for s in incumbent[5:]]))
-                except:
-                    pass
-        
-        run_incumbents.sort(key = operator.itemgetter(0))            
-        
-        conf_dict = {}
-        for c in run_incumbents[0][1]:
-            c = c.split('=')
-            conf_dict[c[0]] = parser_dict[c[0]](c[1].strip("'"))
-        return( run_incumbents[0][0], conf_dict )
+            fn = os.path.join(scenario_dir, 'traj-run-%i.txt'%s)
+            run_incumbents.append(pysmac.utils.read_trajectory_file(fn)[-1])
+
+        run_incumbents.sort(key = operator.itemgetter("Estimated Training Performance"))
+
+        return( run_incumbents[0]["Estimated Training Performance"], run_incumbents[0]['Configuration'])
