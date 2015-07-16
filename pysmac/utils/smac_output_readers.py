@@ -8,7 +8,7 @@ import numpy as np
 
 
 def json_parse(fileobj, decoder=json.JSONDecoder(), buffersize=2048):
-    """ Small function to parse a file containing JSON objects separated by a new line. This format is used in the live-rundata-xx.json files produces by SMAC
+    """ Small function to parse a file containing JSON objects separated by a new line. This format is used in the live-rundata-xx.json files produces by SMAC.
     
     taken from http://stackoverflow.com/questions/21708192/how-do-i-use-the-json-module-to-read-in-one-json-object-at-a-time/21709058#21709058
     """
@@ -26,13 +26,6 @@ def json_parse(fileobj, decoder=json.JSONDecoder(), buffersize=2048):
                 break
 
 
-# Reads a run_results file from a state-run folder and stores in a numpy array
-# The run results are the only non numeric column here. They are mapped
-# according to:
-# SAT -----> 1
-# UNSAT ---> 0
-# TIMEOUT -> -1
-# ELSE ----> -2
 def read_runs_and_results_file(fn):
     """ Converting a runs_and_results file into a numpy array.
     
@@ -43,13 +36,13 @@ def read_runs_and_results_file(fn):
     +-------+----------------+
     | Value | Representation |
     +=======+================+
-    |SAT    |        1       |
+    |SAT    |        2       |
     +-------+----------------+
-    |UNSAT  |        0       |
+    |UNSAT  |        1       |
     +-------+----------------+
-    |TIMEOUT|       -1       |
+    |TIMEOUT|        0       |
     +-------+----------------+
-    |Others |       -2       |
+    |Others |       -1       |
     +-------+----------------+
     
     
@@ -67,9 +60,6 @@ def read_runs_and_results_file(fn):
         converters={13:map_run_result}, ndmin=2))
 
 
-# reads a paramstring file from a state-run folder
-# The returned list contains dictionaries with
-# 'parameter_name': 'value_as_string' pairs
 def read_paramstrings_file(fn):
     """ Function to read a paramstring file.
     Every line in this file corresponds to a full configuration. Everything is
@@ -90,9 +80,7 @@ def read_paramstrings_file(fn):
             param_dict_list.append({k:v for [k, v] in pairs})
     return(param_dict_list)
 
- 
-# Reads a validationCallString file and returns a list of dictonaries
-# Each dictionary consists of parameter_name: value_as_string entries
+
 def read_validationCallStrings_file(fn):
     """Reads a validationCallString file into a list of dictionaries.
     
@@ -139,10 +127,39 @@ def read_validationObjectiveMatrix_file(fn):
     return(values)
 
 
-def read_instances_file(fn):
-    """
-    Reads the instance names from an instace file
+def read_trajectory_file(fn):
+    """Reads a trajectory file and returns a list of dicts with all the information.
     
+    Due to the way SMAC stores every parameter's value as a string, the configuration returned by this function also has every value stored as a string. All other values, like "Estimated Training Preformance" and so on are floats, though.
+    
+    :param fn: name of file to read
+    :type fn: str
+    
+    :returns: list of dicts -- every dict contains the keys: "CPU Time Used","Estimated Training Performance","Wallclock Time","Incumbent ID","Automatic Configurator (CPU) Time","Configuration"
+    """
+    return_list = []
+    
+    with open(fn,'r') as fh:
+        header = list(map(lambda s: s.strip('"'), fh.readline().split(",")))
+        print(header)
+        l_info = len(header)-1
+        for line in fh.readlines():
+            tmp = line.split(",")
+            tmp_dict = {}
+            for i in range(l_info):
+                tmp_dict[header[i]] = float(tmp[i])
+            tmp_dict['Configuration'] = {}
+            for i in range(l_info, len(tmp)):
+                name, value = tmp[i].strip().split("=")
+                tmp_dict['Configuration'][name] = value.strip("'").strip('"')
+            return_list.append(tmp_dict)
+    return(return_list)
+
+def read_instances_file(fn):
+    """Reads the instance names from an instace file
+    
+    :param fn: name of file to read
+    :type fn: str
     :returns: list -- each element is a list where the first element is the instance name followed by additional information for the specific instance.
     """
     with open(fn,'r') as fh:
