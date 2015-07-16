@@ -122,7 +122,7 @@ def state_merge(state_run_directory_list, destination,
                 pass
         
         # store the feature file header:
-        ff_header.add(header_feats)
+        ff_header.add(",".join(header_feats))
         
         if len(ff_header) != 1:
             raise RuntimeError("Feature Files not consistent across runs!\n{}".format(header_feats))
