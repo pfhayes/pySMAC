@@ -25,7 +25,7 @@ We shall look at a simple example for all four times to show how they are define
 
 .. code-block:: python
 
-    parameter_definitions=dict(\
+	parameter_definitions=dict(\
 	a_float_parameter =       ("real"       , [-3.5, 2.48]                             , 1.1           ),
 	an_integer_parameter =    ("integer"    , [1, 1000]                                ,  2      ,"log"),
 	a_categorical_parameter = ("categorical", ["yes", "no", "maybe"]                   , "yes"         ),
@@ -36,29 +36,186 @@ The definition of each parameter follows the same pattern: first its type,
 followed by a list defining the allowed values, and finally the default value.
 
 For **real** and **integer** type, the allowed values are defined by a range,
-represented by a list with exactly two (numerical) elements. The default
-value has to be inside this range to yield a legal definition.
+represented by a list with exactly two elements. The default
+value has to be inside this range to yield a legal definition. Bothe the
+range and the default of an **integer** have to Python **int**\s
 
 There exists an optional flag "log" that can be given additionally as the
 last element of a tuple for these two types. If given, the parameter is
 varied on a logarithmic scale, meaning that the logarithm of the value is
-uniformly distributed between the logarithm of the bounds. Therefor, this
-option can only be given if the parameter is strictly positive! In the 
-above example **
+uniformly distributed between the logarithm of the bounds. Therefore, this
+option can only be given if the parameter is strictly positive!
 
 For **categorical** and **ordinal** the list of allowed values can contain 
 any number (>0) of elements. Every element constitutes a valid value for
 this parameter. The default value has to be among them. The ordering of
 an ordinal parameter is established by the order in the list.
 
-A sidenode
-----------
+.. note::
 
-Defining the parameter configuration space can be quite challenging, e.g.,
-if the number of parameters is large, so typos and resulting inconsistencies
-can happen. SMAC itself checks the definitions in great detail, and pySMAC
-provides also some sanity checks with (hopefully) helpful error messages
-to help with this tedious task. 
-
+    Defining the parameter configuration space can be quite challenging, e.g.,
+    if the number of parameters is large, so typos and resulting inconsistencies
+    can happen. SMAC itself checks the definitions in great detail, and pySMAC
+    provides also some sanity checks with (hopefully) helpful error messages
+    to assist in this tedious task. 
 
 
+.. todo::
+    add example
+
+
+Conditional Parameter Clauses
+=============================
+
+In many cases, certain parameters only have any meaning if another one takes
+a certain value. For example, one parameter might activate or deactivate  a
+subroutine which has parameters itself. Naturally, the latter are only relevant
+when the subroutine is actually used. These dependencies can be expressed in
+pySMAC to accelerate the configuration process (by reducing the number of
+active parameters).
+
+To illustrate this, let's focus on the following example:
+
+.. literalinclude:: ../examples/sklearn_model_selection.py
+    :linenos:
+
+
+The output looks like that (note the random data set leads to slightly different numbers for every run):
+
+.. code-block:: shell
+
+    The default accuracy of the random forest is 0.909091
+    The default accuracy of the extremely randomized trees is 0.903030
+    The default accuracy of k-nearest-neighbors is 0.863636
+    The highest accuracy found: 0.936364
+    Parameter setting {'knn_weights': 'distance', 'trees_n_estimators': '8', 'knn_n_neighbors': '1', 'classifier': 'random_forest', 'trees_max_features': '10', 'trees_max_depth': '2', 'trees_criterion': 'gini'}
+
+The script shows how SMAC can be used for model selection and (simultanious)
+optimization. The function to be minimized (*choose_classifier*, line 16)
+returns the negative accuracy of training one out of three machine learning
+models (a random forest, extremely randomized trees, and k-nearest-neighbors).
+So effectively, SMAC is asked to maximize the accuray choosing either of
+these models and its respective parameters.
+
+The parameter definitions are stated between line 31 and 39. Naturally,
+the ones for K-nearest-neighbors and the two tree based classifiers are
+independent. Therefore, the parameters of the former
+only influence the accuracy if this classifier is actually chosen.
+
+The variable *conditionals*, defined in line 47, shows some examples for 
+how these dependencies between parameters are expressed. Generally they
+follow the template:
+
+.. code-block:: shell
+
+    child_name | condition1 (&& or ||) condition2 (&& or ||) ...
+
+The *child* variable is only considered active if the logic expression following 
+the | is true.
+
+.. note:: 
+
+    From the SMAC manual
+	* Parameters that are not listed as a child parameter in any conditional parameter clause are always active.
+	* A child’s name can appear only once.
+	* There is no support for parenthesis with conditionals. The && connective has higher precedence than ||, so a||b&& c||d is the same as a||(b&&c)||d. 
+
+The conditions can take different forms:
+
+.. code-block:: c
+
+    parent_name in {value1, value2, ... }
+    parent_name == value                      parent_name != value
+    parent_name <  value                      parent_name >  value
+
+The first one is true if the parent takes any of the values listed. The 
+other expressions have the regular meaning. The operators in the last line
+are only legal for **real**,  **integer** or **ordinal**, while the
+others can be used with any type.
+
+
+Forbidden Parameter Clauses
+=============================
+
+In some usecases, certain parameter configurations might be illegal or
+lead to undefined behavior. For example, some algorithms might be able to
+employ different data structures, and different subroutines, controlled
+by two parameters.
+
+.. code-block:: python
+
+    parameter_definition = dict(\
+	    DS = ("categorical", [DataStructure1, DataStructure2, DataStructure3],DataStructure1 ),
+	    SR = ("categorical", [SubRoutine1, SubRoutine2, SubRoutine3], SubRoutine1)
+    )
+
+
+Let's assume that DataStructure2 is incompatible with SubRoutine3,
+i.e. evaluating this combination does not yield a meaningful result,
+or might even cause a system crash. That means one out of nine possible
+choices for these two parameters is forbidden.
+ 
+One can certainly change the parameters and their definitions such that they exclude
+this case explicitly. One could, i.e., combine the two parameters and list
+all eight allowed values:
+
+.. code-block:: python
+
+    parameter_definition = dict(\
+	    DS_SR categorical {DS1_SR1, DS1_SR2, DS1_SR2, DS2_SR1, DS2_SR2, DS3_SR1, DS3_SR2, DS3_SR3} [DS1_SR1]
+    )
+
+This is not only unpractical, but it forbids SMAC to learn about the data
+structures and subroutines independently. It is much more efficient to
+specifically exclude this one combination by defining a forbidden parameter
+clause. The **classic syntax** is as follows:
+
+.. code-block:: python
+
+    "parameter_name1 = value1, ..., parameter_nameN = ValueN"
+    
+It allows to specify combinations of values that are forbidden. For our
+example above, the appropriate forbidden clause would be
+.. code-block:: python
+
+    "DS = DataStructure2, SR = SubRoutine3"
+
+A list of all forbidden clauses is than passed to the minimize method after
+the conditionals, or with the forbidden_clauses keyword.
+
+Introduced in SMAC 2.10, there is an **advanced syntax** that allows more
+complex situations to be handled. It allows to compare parameter values to
+each other, and apply a limit set of functions:
+
+    +---------------------+----------------------------------------------------------------------------------------+
+    |Arithmetic Operations| +,-,*,/,^, Unary +/-, and %                                                            |
+    +---------------------+----------------------------------------------------------------------------------------+
+    |    Functions        | abs, (a)cos, (a)sin, (a)tan, exp, sinh, cosh, ceil, floor, log, log2, log10, sqrt, cbrt|
+    +---------------------+----------------------------------------------------------------------------------------+
+    |  Logical Operators  | >=, <=, >, <, ==, !=, ||, &&                                                           |
+    +---------------------+----------------------------------------------------------------------------------------+
+
+
+.. note::
+    The SMAC manual has an extensive section on important tips and caveats
+    related to forbidden parameters. Here are some major points
+    
+	* SMAC generates random configurations without honoring the forbidden clauses, but rejects those that violate at least one. So constraining the space too much will slow down the process.
+	* Even meaningless forbidden clauses (those that are always false) still take time to evaluate slowing SMAC down.
+	* Applying arithmetic operations/function to non-numerical values for categoricals/ordinals leads to undefined behavior!
+	  For **categorical** types only == and != should be used. You may use >=, <=, <, and > for **ordinal** parameters.
+	* Don't use == and != for **real** types, as they are almost always false, or true respectively.
+	* names and values of parameters must not contain anything besides alphanumeric characters and underscores.
+	* When defining **ordinal** parameters, you have to keep the values consistent. E.g.
+	
+	  .. code-block:: python
+	    
+	    parameter_definition = dict(\
+		a = ("ordinal", ["warm", "medium", "cold"], "medium"),
+		b = ("ordinal", ["cold", "medium", "warm"], "medium"),
+		c = ("ordinal", [100, 10, 1], 100))
+
+	  The problem here is that "warm < cold" for a, but "warm > cold" for b.
+	  For numerical values the definition of c implies "100<10", which is not true.
+    
+    For more details, please refere to the SMAC manual.

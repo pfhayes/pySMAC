@@ -141,7 +141,6 @@ def read_trajectory_file(fn):
     
     with open(fn,'r') as fh:
         header = list(map(lambda s: s.strip('"'), fh.readline().split(",")))
-        print(header)
         l_info = len(header)-1
         for line in fh.readlines():
             tmp = line.split(",")
