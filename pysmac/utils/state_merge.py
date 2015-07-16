@@ -42,7 +42,6 @@ def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn 
     if len(full_feat_fn) == 1:      
         instance_features = readers.read_instance_features_file(full_feat_fn[0])
     else:
-        print("No feature file")
         instance_features = None
 
     return (configs, instance_names, instance_features, runs_and_results)
@@ -212,9 +211,12 @@ def state_merge(state_run_directory_list, destination,
             fh.write(", ".join(["{}='{}'".format(p[0],p[1]) for p in conf[1]]))
             fh.write('\n')
 
-    if set(map(operator.itemgetter('features'), list(instances.values()))) != set([None]):
+    
+
+    if set(map(lambda a: list(map(str,a['features'])),list(instances.values()))) != set([None]):
         with open(os.path.join(destination, 'instance-features.txt'),'w') as fh:
             fh.write(ff_header.pop())
+            fh.write("\n")
             sorted_features = [(instances[inst]['index'], inst + ',' + instances[inst]['features']) for inst in instances]
             sorted_features.sort()
             fh.write('\n'.join([ t[1] for t in sorted_features]))
