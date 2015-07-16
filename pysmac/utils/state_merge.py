@@ -213,7 +213,7 @@ def state_merge(state_run_directory_list, destination,
 
     
 
-    if set(map(lambda a: list(map(str,a['features'])),list(instances.values()))) != set([None]):
+    if set(map(lambda a: ",".join(list(map(str,a['features']))),list(instances.values()))) != set([None]):
         with open(os.path.join(destination, 'instance-features.txt'),'w') as fh:
             fh.write(ff_header.pop())
             fh.write("\n")
