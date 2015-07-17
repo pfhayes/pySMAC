@@ -7,7 +7,7 @@ import shutil
 import numpy
 
 
-import pysmac.utils.smac_output_readers as readers
+import pySMAC.utils.smac_output_readers as readers
 
 
 

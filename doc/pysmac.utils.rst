@@ -1,8 +1,6 @@
 pysmac.utils package
 ====================
 
-Submodules
-----------
 
 pysmac.utils.java_helper module
 -------------------------------
@@ -40,15 +38,6 @@ pysmac.utils.state_merge module
 -------------------------------
 
 .. automodule:: pysmac.utils.state_merge
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: pysmac.utils
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,15 +1,5 @@
-pysmac package
-==============
-
-Subpackages
------------
-
-.. toctree::
-
-    pysmac.utils
-
-Submodules
-----------
+Detailed API documentation
+==========================
 
 pysmac.analyzer module
 ----------------------
@@ -35,11 +25,9 @@ pysmac.remote_smac module
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
 
-Module contents
----------------
+.. toctree::
 
-.. automodule:: pysmac
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    pysmac.utils

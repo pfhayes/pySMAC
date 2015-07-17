@@ -5,7 +5,7 @@ sys.path.append("..")
 sys.path.append("../../pynisher")
 
 
-import pysmac
+import pySMAC
 import math
 
 # To demonstrate the use, we shall look at a slight modification of the well-
@@ -27,7 +27,6 @@ def modified_branin(x1, x2, x3):
     s = 10
     t = 1 / (8*math.pi)
     ret  = a*(x2-b*x1**2+c*x1-r)**2+s*(1-t)*math.cos(x1)+s + x3
-    print(ret)
     return ret
 
 
@@ -49,12 +48,12 @@ parameter_definition=dict(\
 
 
 # The next step is to create a SMAC_optimizer object
-opt = pysmac.SMAC_optimizer()
+opt = pySMAC.SMAC_optimizer()
 
 # Then, call its minimize method with at least the three mandatory parameters
-value, parameters = opt.minimize(modified_branin        # the function to be minimized
-                                        , 1000                                                  # the maximum number of function evaluations
-                                        , parameter_definition)                 # the parameter dictionary
+value, parameters = opt.minimize(modified_branin,      # the function to be minimized
+                                 1000,                 # the maximum number of function evaluations
+                                 parameter_definition) # the parameter dictionary
 
 
 # the return value is a tuple of the lowest function value and a dictionary

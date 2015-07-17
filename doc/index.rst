@@ -14,11 +14,13 @@ Contents:
    quickstart
    pcs
    advanced_configuration
+   analysis
+   pysmac
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 
+.. * :ref:`modindex`

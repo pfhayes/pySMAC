@@ -10,10 +10,10 @@ import logging
 import csv
 
 
-import pysmac.utils
-import pysmac.remote_smac as remote_smac
-from pysmac.utils.multiprocessing_wrapper import MyPool
-from pysmac.utils.java_helper import check_java_version, smac_classpath
+import pySMAC.utils
+import pySMAC.remote_smac as remote_smac
+from pySMAC.utils.multiprocessing_wrapper import MyPool
+from pySMAC.utils.java_helper import check_java_version, smac_classpath
 
 
 class SMAC_optimizer(object):
@@ -36,11 +36,9 @@ class SMAC_optimizer(object):
 
 
     # collects smac specific data that go into the scenario file
-    def __init__(self, deterministic = True, t_limit_total_s=None, mem_limit_smac_mb=None, working_directory = None, persistent_files=False, debug = False):
+    def __init__(self, t_limit_total_s=None, mem_limit_smac_mb=None, working_directory = None, persistent_files=False, debug = False):
         """
         
-        :param deterministic: whether the function to be minimized always returns the same value when called with the same parameters
-        :type deterministic: bool
         :param t_limit_total_s: the total time budget (in seconds) for the optimization. None means that no wall clock time constraint is enforced.
         :type t_limit_total_s: float
         :param mem_limit_smac_mb: memory limit for the Java Runtime Environment in which SMAC will be executed. None means system default.
@@ -101,7 +99,6 @@ class SMAC_optimizer(object):
         self.smac_options = {
             'algo-exec': 'echo 0',
             'run-obj': 'QUALITY',
-            'algo-deterministic': deterministic,
             'validation': False,
             'cutoff_time': 3600,
             'intensification-percentage': 0.5,
@@ -136,18 +133,43 @@ class SMAC_optimizer(object):
             shutil.rmtree(self.working_directory)
 
     def minimize(self, func, max_evaluations, parameter_dict, 
-            conditional_clauses = [], forbidden_clauses=[], 
+            conditional_clauses = [], forbidden_clauses=[],
+            deterministic = True,
             num_train_instances = None, num_test_instances = None,
             train_instance_features = None,
-            seed = None,  num_procs = 1, num_runs = 1,
+            num_runs = 1, num_procs = 1, seed = 0,
             mem_limit_function_mb=None, t_limit_function_s= None):
         """
         Function invoked to perform the actual minimization given all necessary information.
+        
+        :param func: the function to be called
+        :type func: callable
+        :param max_evaluations: number of function calls allowed during the optimization (does not include optional validation).
+        :type max_evaluations: int
+        :param parameter_dict: parameter configuration space definition, see :doc:`pcs`.
+        :type parameter_dict: dict
+        :param conditional_clauses: list of conditional dependencies between parameters,  see :doc:`pcs`.
+        :type parameter_dict: list
+        :param forbidden_clauses: list of forbidden parameter configurations, see :doc:`pcs`.
+        :type parameter_dict: list
+        :param deterministic: whether the function to be minimized contains random components, see :ref:`non-deterministic`.
+        :type deterministic: bool
+        :param num_train_instances: number of instances used during the configuration/optimization, see :ref:`training_instances`.
+        :type num_train_instances: int
+        :param num_test_instances: number of instances used for testing/validation, see :ref:`validation`.
+        :type num_test_instances: int
+        :param num_runs: number of independent SMAC runs.
+        :type num_runs: int
+        :param num_procs: number SMAC runs that can be executed in paralell
+        :type num_procs: int
+        :param seed: seed for SMAC's Random Number generator. If int, it is used for the first run, additional runs use consecutive numbers. If list, it specifies a seed for every run.
+        :type seed: int/list of ints
+        :param mem_limit_function_mb: sets the memory limit for your function (value in MB). ``None`` means no restriction. Be aware that this limit is enforced for each SMAC run separately. So if you have 2 parallel runs, pySMAC could use twice that value (and twice the value of mem_limit_smac_mb) in total. Note that due to the creation of the subprocess, the amount of memory available to your function is less than the value specified here. This option exists mainly to prevent a memory usage of 100% which will at least slow the system down.
+        :type  mem_limit_function_mb: int
+        :param t_limit_function_s: cutoff time for a single function call. ``None`` means no restriction. If optimizing run time, SMAC can choose a shorter cutoff than the provided one for individual runs. If `None` was provided, then there is no cutoff ever!
         """
 
-        # find the minimum given a function handle and a specification of its parameters and optional
-        # conditionals and forbidden clauses
-
+        self.smac_options['algo-deterministic'] = deterministic
         
         # adjust the number of training instances
         num_train_instances = None if (num_train_instances is None) else int(num_train_instances)
@@ -173,11 +195,7 @@ class SMAC_optimizer(object):
         pcs_string, parser_dict = remote_smac.process_parameter_definitions(parameter_dict)
 
         # adjust the seed variable
-        if seed is None:
-            seed = list(range(num_runs))
-        elif isinstance(seed, int) and num_runs == 1:
-            seed = [seed]
-        elif isinstance(seed, int) and num_runs > 1:
+        if isinstance(seed, int):
             seed = list(range(seed, seed+num_runs))
         elif isinstance(seed, list) or isinstance(seed, tuple):
             if len(seed) != num_runs:
@@ -217,6 +235,7 @@ class SMAC_optimizer(object):
         
 
         if num_test_instances is not None:
+            # TODO: honor the users values for validation if set, and maybe show a warning on stdout
             self.smac_options['validate-only-last-incumbent'] = True
             self.smac_options['validation'] = True
             self.smac_options['test-instances'] = os.path.join(self.working_directory, 'test_instances.dat')
@@ -276,7 +295,7 @@ class SMAC_optimizer(object):
         
         for s in seed:
             fn = os.path.join(scenario_dir, 'traj-run-%i.txt'%s)
-            run_incumbents.append(pysmac.utils.read_trajectory_file(fn)[-1])
+            run_incumbents.append(pySMAC.utils.read_trajectory_file(fn)[-1])
 
         run_incumbents.sort(key = operator.itemgetter("Estimated Training Performance"))
 

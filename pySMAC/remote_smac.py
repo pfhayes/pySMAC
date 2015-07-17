@@ -303,12 +303,15 @@ def remote_smac_function(only_arg):
                 del config_dict['seed']
         
             current_t_limit = int(ceil(config_dict.pop('cutoff_time')))
+            # only restrict the runtime if an initial cutoff was defined
+            current_t_limit = None if t_limit_function is None else current_t_limit
+            current_wall_time_limit =  None if current_t_limit is None else 10*current_t_limit
 
             # execute the function and measure the time it takes to evaluate
             wrapped_function = pynisher.enforce_limits(
                 mem_in_mb=mem_limit_function,
                 cpu_time_in_s=current_t_limit,
-                wall_time_in_s=10*current_t_limit,
+                wall_time_in_s=current_wall_time_limit,
                 grace_period_in_s = 1)(function)
 
             # workaround for the 'Resource temporarily not available' error on

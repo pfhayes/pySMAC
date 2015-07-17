@@ -1,6 +1,6 @@
 import os
 
-import pysmac.remote_smac
+import pySMAC.remote_smac
 
 def check_java_version(java_executable="java"):
     """
@@ -45,7 +45,7 @@ def smac_classpath():
     
     logger = multiprocessing.get_logger()
     
-    smac_folder = resource_filename("pysmac", 'smac/%s' % pysmac.remote_smac.SMAC_VERSION)
+    smac_folder = resource_filename("pySMAC", 'smac/%s' % pySMAC.remote_smac.SMAC_VERSION)
     
     smac_conf_folder = os.path.join(smac_folder, "conf")
     smac_patches_folder = os.path.join(smac_folder, "patches")

@@ -172,16 +172,35 @@ clause. The **classic syntax** is as follows:
 
 .. code-block:: python
 
-    "parameter_name1 = value1, ..., parameter_nameN = ValueN"
+    "{parameter_name1 = value1, ..., parameter_nameN = ValueN}"
     
 It allows to specify combinations of values that are forbidden. For our
 example above, the appropriate forbidden clause would be
+
 .. code-block:: python
 
-    "DS = DataStructure2, SR = SubRoutine3"
+    forbidden_confs = ["{DS = DataStructure2, SR = SubRoutine3}"]
 
-A list of all forbidden clauses is than passed to the minimize method after
-the conditionals, or with the forbidden_clauses keyword.
+.. note::
+    The pair of curly braces {} around the expression is mandatory. The
+    pySMAC notation here is a direct copy of the SMAC one. These strings
+    are merely handed over to SMAC without any processing. That way, 
+    statements from the SMAC manual are applicable to pySMAC as well.
+
+A list of all forbidden clauses is than passed to the minimize method 
+with the forbidden_clauses keyword. So the corresponding
+call to the minimize method would look like this:
+
+.. code-block:: python
+
+    opt = pysmac.SMAC_optimizer()
+    value, config = opt.minimize(function_to_minimize, num_function_calls,
+				 parameter_definition,
+				 forbidden_clasuses = forbidden_confs)
+
+
+Of course, conditionals and forbidden clauses are not mutual exclusive, 
+but you can define both and use them while minimizing the function.
 
 Introduced in SMAC 2.10, there is an **advanced syntax** that allows more
 complex situations to be handled. It allows to compare parameter values to
