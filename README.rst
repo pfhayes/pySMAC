@@ -14,13 +14,15 @@ Installation
 
 To install pysmac, we advise using the Python package management system:
 
-```
-pip install git+https://github.com/sfalkner/pysmac.git --user
-```
+.. code-block:: shell
+
+        pip install git+https://github.com/sfalkner/pysmac.git --user
+
 If you prefer, you can clone the repository and install it manually via
-```
-python setup.py install
-```
+
+.. code-block:: shell
+
+        python setup.py install
 
 
 Basic Usage
@@ -29,25 +31,25 @@ Basic Usage
 One main focus of this project is to offer a very simple interface to novice users that want to use SMAC within python. On the other hand,
 we also strive to provide more advanced users access to (almost) all parameters and advanced functionality that SMAC has to offer. A very simple example could be
 
-```python
-import pysmac
+.. code-block:: python
 
-def sum_of_squares(x1, x2):
-	return(x1**2 + x2**2)
+        import pySMAC
 
-opt = pysmac.SMAC_optimizer()
+        def sum_of_squares(x1, x2):
+	        return(x1**2 + x2**2)
 
-parameter_definition=dict(\
+        opt = pySMAC.SMAC_optimizer()
+
+        parameter_definition=dict(\
 		x1=( [-5, 5],  1), # this line means x1 is a float between -5 and 5, inital guess is 1
 		x2=( [-5, 5], -1), # same as x1, but the initial value is -1
-		)
+	)
 
-value, parameters = opt.minimize(sum_of_squares		# the function to be minimized
-					, 100							# the maximum number of function evaluations
-					, parameter_definition)			# the parameter dictionary
+        value, parameters = opt.minimize(sum_of_squares		# the function to be minimized
+					, 100			# the maximum number of function evaluations
+					, parameter_definition)	# the parameter dictionary
 
-print('The minimum value %f was found for the configurations %s'%(value, parameters))
-```
+        print('The minimum value %f was found for the configurations %s'%(value, parameters))
 
 It highlights the four steps involved in using pySMAC:
 

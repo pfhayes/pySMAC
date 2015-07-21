@@ -1,12 +1,10 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
-    name = "pysmac",
-    version = "0.9",
-    packages = find_packages(),
+    name = 'pySMAC',
+    version = '0.9',
+    packages = ['pySMAC'],
     install_requires = ['docutils>=0.3', 'setuptools', 'numpy', 'matplotlib', 'pynisher'],
-    dependency_links=['https://github.com/sfalkner/pynisher/zipball/master#egg=pynisher-0.9'],
-    #dependency_links=['git+http://git.pynisher.org/pynisher#egg=pynisher'],
     author = "Stefan Falkner and Tobias Domhan (python wrapper). Frank Hutter, Holger Hoos, Kevin Leyton-Brown, Kevin Murphy and Steve Ramage (SMAC)",
     author_email = "sfalkner@informatik.uni-freiburg.de",
     description = "python interface to the hyperparameter optimization tool SMAC.",

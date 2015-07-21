@@ -19,7 +19,7 @@ import pynisher
 
 
 
-SMAC_VERSION = "smac-v2.10.02-master-773"
+SMAC_VERSION = "smac-v2.10.03-master-778"
 
 try:
     str=unicode #Python 2 backward compatibility
