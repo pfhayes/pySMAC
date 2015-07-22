@@ -3,81 +3,64 @@ Quickstart Guide
 ================
 
 This quickstart guide tries to show the basic mechanisms of how to use pySMAC
-to find good input parameters to a python function to minimize the return value. 
+to find good input parameters to a python function minimizing the return value. 
 
-To gain familiarity with the workflow, we shall disect the file "branin_example.py"
+To gain familiarity with the workflow, we shall dissect the file "rosenbrock_example.py"
 which can be found in the example folder. The full script looks like this:
 
-.. code-block:: python
+.. literalinclude:: ../examples/rosenbrock_example.py
+        :linenos:
 
-    import pysmac
-    import math
-
-    def modified_branin(x1, x2, x3):
-	if (int(x3) != x3):
-	    raise ValueError("parameter x3 has to be an integer!")
-	if (x3<0):
-	    raise ValueError("parameter x3 has to be positive!")
-
-	a = 1
-	b = 5.1 / (4*math.pi**2)
-	c = 5 / math.pi
-	r = 6
-	s = 10
-	t = 1 / (8*math.pi)
-	ret  = a*(x2-b*x1**2+c*x1-r)**2+s*(1-t)*math.cos(x1)+s + x3
-	return ret
-
-    parameter_definition=dict(\
-		x1=('real',    [-5, 5],  1),
-		x2=('real',    [-5, 5], -1),
-		x3=('integer', [0, 10],  1)
-		)
-
-    opt = pysmac.SMAC_optimizer()
-    value, parameters = opt.minimize(modified_branin, 1000, parameter_definition)
-
-    print('Lowest function value found: {}'.format(value))
-    print('Parameter setting {}'.format(parameters))
-
-
-After the necessary imports, the function '''modified_branin''' is defined.
-The standard Branin function is well know and often used test function in the
-Baysian Optimization community. Here, we added a third paramater, x3, purely for
-demonsting a case usually not handled by standard optimizers. We want it to be
-a non-negative integer and just add it to the original function value.
+After the necessary import, the function ''rosenbrock_4d'' is defined.
+This function function is well know and often used test function in the
+optimization community. Normally, all parameters are continuous, but we
+will declare three of them to be integer valued to demonstrate the different
+types that (py)SMAC supports.
 
 The next step is to specify the type, range and default value of every 
-parameter in a way pySMAC understands. Here, this is done by defining 
+parameter in the  ``pySMAC way``. In our example, this is done by defining 
 the dictionary
 
 .. code-block:: python
 
-    parameter_definition=dict(\
-		x1=('real',    [-5, 5],  1),
-		x2=('real',    [-5, 5], -1),
-		x3=('integer', [0, 10],  1)
-		)
+        parameters=dict(\
+                x1=('real',       [-5, 5], 5),
+                x2=('integer',    [-5, 5], 5),
+                x3=('categorical',[5, 2, 0, 1, -1, -2, 4, -3, 3, -5, -4], 5), 
+                x4=('ordinal',    [-5,-4,-3,-2,-1,0,1,2,3,4,5] , 5),
+                )    
 
-Every entry defines an entry with the parameter name as the key and a tuple
+Every entry defines a parameter with its name as the key and a tuple
 as the corresponding value. The first entry of the tuple defines the type, 
-here x1 and x2 are '''real''', i.e. continuous parameters while x3 is an integer.
-The second entry defines the possible value. For numerical parameters, this has 
-to be a 2-element list containing the smallest and the largest allowed value.
-The third tuple entry is the default value. This has to be inside the specified
-range.
+here ``x1`` is a **real**, i.e. a continuous parameter, while ``x2`` is an integer.
+**Categorical** types, like ``x3``, can only take a value from a user-provided set.
+There is no specific order among the elements, which is why in the example the
+order of the values is shuffled. In contrast, **ordinal** parameters posses an
+inherent ordering between their values. In the defining list, elements are
+assumed to be in increasing order.
 
-This example only shows real and integer parameters without any constraints.
-Please refere to the section *Defining the Parameter Configuration Space* for
-a complete reference.
+The second entry of the tuple defines the possible value. For numerical parameters,
+this has to be a 2-element list containing the smallest and the largest allowed value.
+For **categorical** and **ordinal** values this list contains all allowed values.
+
+The third tuple entry is the default value. This has to be inside the specified
+range for **real** and **integer**, or an element of the previous list for
+**ordinal** and **categorical**.
+Please refer to the section :ref:`parameter_defs` for more detail.
+
+The example here is cooked up and overly complicated for the actual optimization
+problem. For instance, the definitions for ``x2`` and ``x4`` are identical, and
+defining ``x3`` as a **categorical** with only integral values is not exactly the
+same as a **integer** type. But the purpose of this guide was to introduce pySMAC's
+syntax, not solving an interesting problem in the most efficient way possible.
 
 To start the actual minimization, we instantiate a SMAC_optimizer object,
 and call its minimize method with at least 3 argument:
 
 .. code-block:: python
 
-    opt = pysmac.SMAC_optimizer()
-    value, parameters = opt.minimize(modified_branin, 1000, parameter_definition)
+    opt = pySMAC.SMAC_optimizer()
+    value, parameters = opt.minimize(rosenbrock_4d, 1000, parameters)
 
 The arguments of minimze are the function we which to minimize, the budged
 of function calls, and the parameter definition. It returns the lowest 
@@ -85,18 +68,20 @@ function value encountered, and the corresponding parameter configuration
 as a dictionary with parameter name - parameter value as key-value pairs.
 
 The reason why an object is created before a minimization function is called
-will become clear in the section *Advanced configuration of pySMAC*
+will become clear in the section :ref:`advanced_configuration`.
 
-As already mentioned above, the found function value is not competative
-to other optimizers on the *standard Branin function* which can
-exploit the coninuity of x1 and x2, but cannot be applied out of the box
-to our modified version. The output of running the example here reads:
+The output of the code could look like this:
 
 .. code-block:: html
 
-    Lowest function value found: 0.521565
-    Parameter setting {'x3': 0, 'x2': 2.3447806193471035, 'x1': 3.280718422274644}
+        Lowest function value found: 1.691811
+        Parameter setting {'x3': '1', 'x1': '0.9327937187899629', 'x4': '1', 'x2': '1'}
 
-The true minimium is at (3.1415926, 2.275, 0) with a function value of 0.397887.
-But the purpose of this quickstart guide was soley to introduce how to use
-pySMAC rather than showing an interesting example.
+with the true minimum at (1,1,1,1) having a function value of 0. Given 1000
+function evaluations, this result is not competitive to continuous optimizers
+if we would drop the integral restriction for ``x2``, ``x3``, and ``x4``. Continuous
+optimization allows to estimate and exploit gradients which can lead to a much
+faster convergence towards a local optimum. But the purpose of this quickstart guide
+is solely to introduce how to use pySMAC rather than showing an interesting example.
+The strength of pySMAC become more visible in more complicated cases that are usually
+infeasible for standard optimizers.

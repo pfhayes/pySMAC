@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-import pysmac
+import pySMAC
 
 import sklearn.ensemble
 import sklearn.neighbors
@@ -70,8 +70,8 @@ conditionals = [ 'trees_max_depth    | classifier in {random_forest, extra_trees
                 ]
 
 # creation of the SMAC_optimizer object. Notice the optional debug flag
-opt = pysmac.SMAC_optimizer( debug = 0,
-							 working_directory = '/tmp/pysmac_test/', persistent_files=True, )
+opt = pySMAC.SMAC_optimizer( debug = 0,
+							 working_directory = '/tmp/pySMAC_test/', persistent_files=True, )
 
 # first we try the sklearn default, so we can see if SMAC can improve the performance
 

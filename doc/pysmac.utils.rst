@@ -1,43 +1,43 @@
-pysmac.utils package
+pySMAC.utils package
 ====================
 
 
-pysmac.utils.java_helper module
+pySMAC.utils.java_helper module
 -------------------------------
 
-.. automodule:: pysmac.utils.java_helper
+.. automodule:: pySMAC.utils.java_helper
     :members:
     :undoc-members:
     :show-inheritance:
 
-pysmac.utils.multiprocessing_wrapper module
+pySMAC.utils.multiprocessing_wrapper module
 -------------------------------------------
 
-.. automodule:: pysmac.utils.multiprocessing_wrapper
+.. automodule:: pySMAC.utils.multiprocessing_wrapper
     :members:
     :undoc-members:
     :show-inheritance:
 
-pysmac.utils.smac_input_readers module
+pySMAC.utils.smac_input_readers module
 --------------------------------------
 
-.. automodule:: pysmac.utils.smac_input_readers
+.. automodule:: pySMAC.utils.smac_input_readers
     :members:
     :undoc-members:
     :show-inheritance:
 
-pysmac.utils.smac_output_readers module
+pySMAC.utils.smac_output_readers module
 ---------------------------------------
 
-.. automodule:: pysmac.utils.smac_output_readers
+.. automodule:: pySMAC.utils.smac_output_readers
     :members:
     :undoc-members:
     :show-inheritance:
 
-pysmac.utils.state_merge module
+pySMAC.utils.state_merge module
 -------------------------------
 
-.. automodule:: pysmac.utils.state_merge
+.. automodule:: pySMAC.utils.state_merge
     :members:
     :undoc-members:
     :show-inheritance:

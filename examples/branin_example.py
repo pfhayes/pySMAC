@@ -1,9 +1,5 @@
 from __future__ import print_function, division
 
-import sys
-sys.path.append("..")
-sys.path.append("../../pynisher")
-
 
 import pySMAC
 import math

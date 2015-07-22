@@ -1,4 +1,4 @@
-pysmac
+pySMAC
 ======
 
 .. toctree::

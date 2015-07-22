@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-import pysmac
+import pySMAC
 
 import sklearn.ensemble
 import sklearn.datasets
@@ -42,7 +42,7 @@ parameter_definition=dict(\
 		)
 
 # Same creation of the SMAC_optimizer object
-opt = pysmac.SMAC_optimizer( working_directory = '/tmp/pysmac_test/',# the folder where SMAC generates output
+opt = pySMAC.SMAC_optimizer( working_directory = '/tmp/pySMAC_test/',# the folder where SMAC generates output
 							 persistent_files=False,				 # whether the output will persist beyond the python object's lifetime
 							 debug = False							 # if something goes wrong, enable this for diagnostic output
 							)

@@ -55,6 +55,10 @@ def process_single_parameter_definition(name, specification):
             raise ValueErrror("Interval {} not not understood.".format(specification[1]))
         if not (specification[1][0] <= specification[2] and specification[2] <= specification[1][1]):
             raise ValueError("Default value for {} has to be in the specified range".format(name))
+            
+        if specification[0] == 'integer':
+            if (type(specification[1][0]) != int) or (type(specification[1][1]) != int) or (type(specification[2]) != int):
+                raise ValueError("Bounds and default value of integer parameter {} have to be integer types!".format(name))
         
         string += " [{0[0]}, {0[1]}] [{1}]".format(specification[1], specification[2])
     
