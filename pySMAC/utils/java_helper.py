@@ -18,18 +18,22 @@ def check_java_version(java_executable="java"):
     from subprocess import STDOUT, check_output
     
     error_msg = ""
+    error = False
+    
     out = check_output(java_executable.split() + ["-version"], stderr=STDOUT).strip().split(b"\n")
     if len(out) < 1:
-        print("Failed checking Java version. Make sure Java version 7 or greater is installed.")
-        return False
-    m = re.match(b'java version "\d+.(\d+)..*', out[0])
+        error_msg = "Failed checking Java version. Make sure Java version 7 or greater is installed."
+        error =  True
+    m = re.match(b'.*version "\d+.(\d+)..*', out[0])
     if m is None or len(m.groups()) < 1:
         error_msg = ("Failed checking Java version. Make sure Java version 7 or greater is installed.")
+        error = True
     else:
         java_version = int(m.group(1))
         if java_version < 7:
             error_msg = "Found Java version %d, but Java version 7 or greater is required." % java_version
-    if len(error_msg) > 0:
+            error = True
+    if error:
         raise RuntimeError(error_msg)
 
 
