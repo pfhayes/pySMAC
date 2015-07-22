@@ -11,6 +11,6 @@ setup(
     include_package_data = True,
     keywords = "hyperparameter parameter optimization hyperopt bayesian smac global",
     license = "SMAC is free for academic & non-commercial usage. Please contact Frank Hutter(fh@informatik.uni-freiburg.de) to discuss obtaining a license for commercial purposes.",
-    url = "http://www.cs.ubc.ca/labs/beta/Projects/SMAC/"
+    url = "http://www.cs.ubc.ca/labs/beta/Projects/SMAC/",
     download_url = 'https://github.com/sfalkner/pysmac/tarball/0.9'
 )
