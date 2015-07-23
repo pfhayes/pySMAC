@@ -49,7 +49,8 @@ def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn 
 
 
 def state_merge(state_run_directory_list, destination, 
-                check_scenario_files = True, drop_duplicates = False):
+                check_scenario_files = True, drop_duplicates = False,
+                instance_subset = None):
     """ Function to merge multiple state_run directories into a single
     run to be used in, e.g., the fANOVA.
     
@@ -66,6 +67,8 @@ def state_merge(state_run_directory_list, destination,
     :type check_scenario_files: bool
     :param drop_duplicates: Defines how to handle runs with identical configurations. For deterministic algorithms the function's response should be the same, so dropping duplicates is safe. Keep in mind that every duplicate effectively puts more weight on a configuration when estimating parameter importance.
     :type drop_duplicates: bool
+    :param instance_subset: Defines a list of instances that are used for the merge. All other instances are ignored. (Default: None, all instances are used)
+    :type instance_subset: list
     """
 
     configurations = {}
@@ -106,7 +109,13 @@ def state_merge(state_run_directory_list, destination,
                 configurations[conf] = {'index': i_confs}
                 i_confs += 1
         # merge the instances
+        ignored_instance_ids = []
         for i in range(len(inst_names)):
+            
+            if instance_subset is not None and inst_names[i][0] not in instance_subset:
+                ignored_instance_ids.append(i)
+                continue
+            
             if not inst_names[i][0] in instances:
                 instances[inst_names[i][0]] = {'index': i_insts}
                 instances[inst_names[i][0]]['features'] =  inst_feats[inst_names[i][0]] if inst_feats is not None else None
@@ -132,6 +141,9 @@ def state_merge(state_run_directory_list, destination,
         for run in rars:
             # get the local configuration and instance id
             lcid, liid = int(run[0])-1, int(run[1])-1
+
+            if liid in ignored_instance_ids:
+                continue
 
             # translate them into the global ones
             gcid = configurations[confs[lcid]]['index']
