@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 
-import pySMAC
+import pysmac
 
 def rosenbrock_4d (x1,x2,x3,x4):
     """ The 4 dimensional Rosenbrock function as a toy model
@@ -42,14 +42,14 @@ parameters=dict(\
 
                 )
 # Note: the definition of x3 and x4 is only to demonstrate the different
-# types of variables pySMAC supports. Here these definitions are overly
+# types of variables pysmac supports. Here these definitions are overly
 # complicated for this toy model. For example, the definitions of x2 and
 # x3 are equivalent, but the purpose of this example is not to show a 
 # realistic use case
 
 
 # The next step is to create a SMAC_optimizer object
-opt = pySMAC.SMAC_optimizer()
+opt = pysmac.SMAC_optimizer()
 
 # Then, call its minimize method with (at least) the three mandatory parameters
 value, parameters = opt.minimize(

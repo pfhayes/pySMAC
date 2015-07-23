@@ -7,7 +7,7 @@ import shutil
 import numpy
 
 
-import pySMAC.utils.smac_output_readers as readers
+from .smac_output_readers import *
 
 
 
@@ -24,7 +24,7 @@ def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn 
     :type rar_fn: str
     :param inst_fn: name of the instance file
     :type inst_fn: str
-    :param feat_fn: name of the instance feature file. If this file is not found, pysmac assumes no intsance features.
+    :param feat_fn: name of the instance feature file. If this file is not found, pysmac assumes no instance features.
     :type feat_fn: str
     :param ps_fn: name of the paramstrings file
     :type ps_fn: str
@@ -35,12 +35,12 @@ def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn 
         actual run data returned by read_runs_and_results_file)
     """
     print(("reading {}".format(directory)))
-    configs = readers.read_paramstrings_file(glob.glob(os.path.join(directory,ps_fn))[0])
-    instance_names = readers.read_instances_file(glob.glob(os.path.join(directory,inst_fn))[0])
-    runs_and_results = readers.read_runs_and_results_file(glob.glob(os.path.join(directory, rar_fn))[0])
+    configs = read_paramstrings_file(glob.glob(os.path.join(directory,ps_fn))[0])
+    instance_names = read_instances_file(glob.glob(os.path.join(directory,inst_fn))[0])
+    runs_and_results = read_runs_and_results_file(glob.glob(os.path.join(directory, rar_fn))[0])
     full_feat_fn = glob.glob(os.path.join(directory,feat_fn))
     if len(full_feat_fn) == 1:      
-        instance_features = readers.read_instance_features_file(full_feat_fn[0])
+        instance_features = read_instance_features_file(full_feat_fn[0])
     else:
         instance_features = None
 

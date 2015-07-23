@@ -1,13 +1,13 @@
 from __future__ import print_function, division
 
-import pySMAC
+import pysmac
 
 import sklearn.ensemble
 import sklearn.datasets
 import sklearn.cross_validation
 
 # First, let us generate some random classification problem. Note that, due to the
-# way pySMAC implements parallelism, the data is either a global variable, or
+# way pysmac implements parallelism, the data is either a global variable, or
 # the function loads it itself. Please refere to the python manual about the 
 # multiprocessing module for limitations. In the future, we might include additional
 # parameters to the function, but for now that is not possible.
@@ -41,7 +41,7 @@ parameter_definition=dict(\
 # when this is not appropriate, e.g., when discretizing an interval.
 
 # Now we create the optimizer object again. This time with some parameters
-opt = pySMAC.SMAC_optimizer( working_directory = '/tmp/pySMAC_test/',# the folder where SMAC generates output
+opt = pysmac.SMAC_optimizer( working_directory = '/tmp/pysmac_test/',# the folder where SMAC generates output
 							 persistent_files=False,				 # whether the output will persist beyond the python object's lifetime
 							 debug = False							 # if something goes wrong, enable this for diagnostic output
 							)
@@ -57,7 +57,7 @@ value, parameters = opt.minimize(random_forest,
 					100 , parameter_definition,		# in a real setting, you probably want to do more than 100 evaluations here
 					num_runs = 2,					# number of independent SMAC runs
 					seed = 2,						# the random seed used. can be an int or a list of ints of length num_runs
-					num_procs = 2,					# pySMAC can harness multicore architecture. Specify the number of processes to use here.
+					num_procs = 2,					# pysmac can harness multicore architecture. Specify the number of processes to use here.
 					mem_limit_function_mb=1000,		# There are a build-in mechanisms to limit the resources available to each function call:
 					t_limit_function_s = 20			# 	You can limit the memory available and the wallclock time for each function call
 					)

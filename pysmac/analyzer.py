@@ -15,8 +15,8 @@ import sys
 sys.path.append('/home/sfalkner/repositories/github/pysmac/')
 
 
-import pySMAC.remote_smac
-import pySMAC.utils.smac_output_readers as smac_readers
+import pysmac.remote_smac
+import pysmac.utils.smac_output_readers as smac_readers
 
 
 class SMAC_analyzer(object):

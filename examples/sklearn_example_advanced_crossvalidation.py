@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-import pySMAC
+import pysmac
 
 import sklearn.ensemble
 import sklearn.datasets
@@ -42,7 +42,7 @@ parameter_definition=dict(\
 		)
 
 # Same creation of the SMAC_optimizer object
-opt = pySMAC.SMAC_optimizer( working_directory = '/tmp/pySMAC_test/',# the folder where SMAC generates output
+opt = pysmac.SMAC_optimizer( working_directory = '/tmp/pysmac_test/',# the folder where SMAC generates output
 							 persistent_files=False,				 # whether the output will persist beyond the python object's lifetime
 							 debug = False							 # if something goes wrong, enable this for diagnostic output
 							)
@@ -66,7 +66,7 @@ value, parameters = opt.minimize(random_forest,
 					500 , parameter_definition,
 					num_runs = 2,					# number of independent SMAC runs
 					seed = 0,						# the random seed used. can be an int or a list of ints of length num_runs
-					num_procs = 2,					# pySMAC can harness multicore architecture. Specify the number of processes to use here.
+					num_procs = 2,					# pysmac can harness multicore architecture. Specify the number of processes to use here.
 					num_train_instances = len(kfold)		# This tells SMAC how many different instances there are.
 					)
 	
