@@ -9,11 +9,10 @@ import multiprocessing
 import logging
 import csv
 
-
-#import pySMAC.utils
-#import pySMAC.remote_smac as remote_smac
-from pySMAC.utils.multiprocessing_wrapper import MyPool
-from pySMAC.utils.java_helper import check_java_version, smac_classpath
+from .utils.smac_output_readers import read_trajectory_file
+from .remote_smac import remote_smac_function
+from .utils.multiprocessing_wrapper import MyPool
+from .utils.java_helper import check_java_version, smac_classpath
 
 
 class SMAC_optimizer(object):
@@ -280,7 +279,7 @@ class SMAC_optimizer(object):
 
         # create a pool of workers and make'em work
         pool = MyPool(num_procs)
-        argument_lists = [[scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, smac_classpath(),  num_train_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic'], java_executable] for s in seed]
+        argument_lists = [[scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, java_helper.smac_classpath(),  num_train_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic'], java_executable] for s in seed]
         
         pool.map(remote_smac.remote_smac_function, argument_lists)
         
@@ -295,7 +294,7 @@ class SMAC_optimizer(object):
         
         for s in seed:
             fn = os.path.join(scenario_dir, 'traj-run-%i.txt'%s)
-            run_incumbents.append(pySMAC.utils.read_trajectory_file(fn)[-1])
+            run_incumbents.append(read_trajectory_file(fn)[-1])
 
         run_incumbents.sort(key = operator.itemgetter("Estimated Training Performance"))
 
