@@ -21,9 +21,14 @@ import shlex
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath("../../pynisher/"))
+sys.path.insert(0, os.path.abspath(".."))
 
 # to avoid build errors on ReadTheDocs due to missing libraries
-from unittest.mock import MagicMock
+try:
+    from unittest.mock import MagicMock
+except ImportError:
+    from mock import MagicMock
 
 class Mock(MagicMock):
     @classmethod
@@ -33,8 +38,6 @@ class Mock(MagicMock):
 MOCK_MODULES = ['numpy', 'pynisher']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
-#sys.path.insert(0, os.path.abspath("../../pynisher/"))
-#sys.path.insert(0, os.path.abspath(".."))
 
 # -- General configuration ------------------------------------------------
 
