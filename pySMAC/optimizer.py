@@ -10,8 +10,8 @@ import logging
 import csv
 
 
-import pySMAC.utils
-import pySMAC.remote_smac as remote_smac
+#import pySMAC.utils
+#import pySMAC.remote_smac as remote_smac
 from pySMAC.utils.multiprocessing_wrapper import MyPool
 from pySMAC.utils.java_helper import check_java_version, smac_classpath
 
