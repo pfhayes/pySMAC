@@ -269,7 +269,7 @@ def remote_smac_function(only_arg):
     to perform a separate SMAC run.
     
     This function is not part of the API that users should access, but
-    rather part of the internals of pySMAC. Due to the limitations of the
+    rather part of the internals of pysmac. Due to the limitations of the
     multiprocessing module, it can only take one argument which is a 
     list containing important arguments in a very specific order. Check
     the source code if you want to learn more.

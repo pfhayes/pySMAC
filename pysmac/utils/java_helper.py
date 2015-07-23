@@ -1,12 +1,12 @@
 import os
 
-import pySMAC.remote_smac
+import pysmac.remote_smac
 
 def check_java_version(java_executable="java"):
     """
     Small function to ensure that Java (version >= 7) was found.
     
-    As SMAC requires a Java Runtime Environment (JRE), pySMAC checks that a
+    As SMAC requires a Java Runtime Environment (JRE), pysmac checks that a
     adequate version (>7) has been found. It raises a RuntimeError
     exception if no JRE or an out-dated version was found.
     
@@ -49,7 +49,7 @@ def smac_classpath():
     
     logger = multiprocessing.get_logger()
     
-    smac_folder = resource_filename("pySMAC", 'smac/%s' % pySMAC.remote_smac.SMAC_VERSION)
+    smac_folder = resource_filename("pysmac", 'smac/%s' % pysmac.remote_smac.SMAC_VERSION)
     
     smac_conf_folder = os.path.join(smac_folder, "conf")
     smac_patches_folder = os.path.join(smac_folder, "patches")

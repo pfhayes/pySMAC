@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-import pySMAC
+import pysmac
 
 import sklearn.ensemble
 import sklearn.neighbors
@@ -23,7 +23,7 @@ def choose_classifier(classifier, # which classifier to use
                 # the ones for k-nearest-neighbors
                 knn_n_neighbors=None, knn_weights=None):
 				#note that possibly inactive variables have to be optional
-				#as pySMAC does not assign a value for inactive variables
+				#as pysmac does not assign a value for inactive variables
 				#during the minimization phase
     if classifier == 'random_forest':
         predictor = sklearn.ensemble.RandomForestClassifier(
@@ -70,8 +70,8 @@ conditionals = [ 'trees_max_depth    | classifier in {random_forest, extra_trees
                 ]
 
 # creation of the SMAC_optimizer object. Notice the optional debug flag
-opt = pySMAC.SMAC_optimizer( debug = 0,
-							 working_directory = '/tmp/pySMAC_test/', persistent_files=True, )
+opt = pysmac.SMAC_optimizer( debug = 0,
+							 working_directory = '/tmp/pysmac_test/', persistent_files=True, )
 
 # first we try the sklearn default, so we can see if SMAC can improve the performance
 

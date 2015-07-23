@@ -10,14 +10,14 @@ import logging
 import csv
 
 from .utils.smac_output_readers import read_trajectory_file
-from .remote_smac import remote_smac_function
+import pysmac.remote_smac
 from .utils.multiprocessing_wrapper import MyPool
-from .utils.java_helper import check_java_version, smac_classpath
+from pysmac.utils.java_helper import check_java_version, smac_classpath
 
 
 class SMAC_optimizer(object):
     """
-    The main class of pySMAC instanciated by the user.
+    The main class of pysmac instanciated by the user.
     
     This is the class a user instanciates to use SMAC. Constructing the
     object does not start the minimization immediately. The user has to
@@ -46,7 +46,7 @@ class SMAC_optimizer(object):
         :type working_directory: str
         :param persistent_files: whether or note these files persist beyond the runtime of the optimization.
         :type persistent_files: bool
-        :param debug: set this to true for debug information (pySMAC and SMAC itself) logged to standard-out. 
+        :param debug: set this to true for debug information (pysmac and SMAC itself) logged to standard-out. 
         :type debug: bool
         """
         
@@ -115,7 +115,7 @@ class SMAC_optimizer(object):
             'overall_obj': 'MEAN',
             'scenario_fn': 'scenario.dat', # NOT a SMAC OPTION, but allows to
                                           # change the standard name (used for 
-                                          # in SpySMAC)
+                                          # in Spysmac)
             'java_executable': 'java'     # NOT a SMAC OPTION; allows to 
                                           # specify a different java
                                           # binary and can be abused to 
@@ -163,7 +163,7 @@ class SMAC_optimizer(object):
         :type num_procs: int
         :param seed: seed for SMAC's Random Number generator. If int, it is used for the first run, additional runs use consecutive numbers. If list, it specifies a seed for every run.
         :type seed: int/list of ints
-        :param mem_limit_function_mb: sets the memory limit for your function (value in MB). ``None`` means no restriction. Be aware that this limit is enforced for each SMAC run separately. So if you have 2 parallel runs, pySMAC could use twice that value (and twice the value of mem_limit_smac_mb) in total. Note that due to the creation of the subprocess, the amount of memory available to your function is less than the value specified here. This option exists mainly to prevent a memory usage of 100% which will at least slow the system down.
+        :param mem_limit_function_mb: sets the memory limit for your function (value in MB). ``None`` means no restriction. Be aware that this limit is enforced for each SMAC run separately. So if you have 2 parallel runs, pysmac could use twice that value (and twice the value of mem_limit_smac_mb) in total. Note that due to the creation of the subprocess, the amount of memory available to your function is less than the value specified here. This option exists mainly to prevent a memory usage of 100% which will at least slow the system down.
         :type  mem_limit_function_mb: int
         :param t_limit_function_s: cutoff time for a single function call. ``None`` means no restriction. If optimizing run time, SMAC can choose a shorter cutoff than the provided one for individual runs. If `None` was provided, then there is no cutoff ever!
         """
@@ -191,7 +191,7 @@ class SMAC_optimizer(object):
 
 
         num_procs = int(num_procs)
-        pcs_string, parser_dict = remote_smac.process_parameter_definitions(parameter_dict)
+        pcs_string, parser_dict = pysmac.remote_smac.process_parameter_definitions(parameter_dict)
 
         # adjust the seed variable
         if isinstance(seed, int):
@@ -279,9 +279,9 @@ class SMAC_optimizer(object):
 
         # create a pool of workers and make'em work
         pool = MyPool(num_procs)
-        argument_lists = [[scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, java_helper.smac_classpath(),  num_train_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic'], java_executable] for s in seed]
+        argument_lists = [[scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, smac_classpath(),  num_train_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic'], java_executable] for s in seed]
         
-        pool.map(remote_smac.remote_smac_function, argument_lists)
+        pool.map(pysmac.remote_smac.remote_smac_function, argument_lists)
         
         pool.close()
         pool.join()

@@ -24,7 +24,7 @@ def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn 
     :type rar_fn: str
     :param inst_fn: name of the instance file
     :type inst_fn: str
-    :param feat_fn: name of the instance feature file. If this file is not found, pySMAC assumes no instance features.
+    :param feat_fn: name of the instance feature file. If this file is not found, pysmac assumes no instance features.
     :type feat_fn: str
     :param ps_fn: name of the paramstrings file
     :type ps_fn: str
