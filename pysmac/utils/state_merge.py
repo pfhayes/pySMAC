@@ -125,7 +125,7 @@ def state_merge(state_run_directory_list, destination,
                 if (inst_feats is None):
                     if not (instances[inst_names[i][0]]['features'] is None):
                         raise ValueError("The data contains the same instance name ({}) twice, but once with and without features!".format(inst_names[i]))
-                elif not instances[inst_names[i][0]]['features'] == inst_feats[inst_names[i][0]]:
+                elif not numpy.all(instances[inst_names[i][0]]['features'] == inst_feats[inst_names[i][0]]):
                     raise ValueError("The data contains the same instance name ({}) twice, but with different features!".format(inst_names[i]))
                 pass
         
