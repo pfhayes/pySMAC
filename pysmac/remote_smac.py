@@ -52,7 +52,7 @@ def process_single_parameter_definition(name, specification):
         if len(specification[1])!= 2:
             raise ValueError("Range {} for {} not valid for numerical parameter".format(specification[1], name))
         if specification[1][0] >= specification[1][1]:
-            raise ValueErrror("Interval {} not not understood.".format(specification[1]))
+            raise ValueError("Interval {} not not understood.".format(specification[1]))
         if not (specification[1][0] <= specification[2] and specification[2] <= specification[1][1]):
             raise ValueError("Default value for {} has to be in the specified range".format(name))
             
