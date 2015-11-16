@@ -11,6 +11,35 @@ from .smac_output_readers import *
 
 
 
+def find_largest_file (glob_pattern):
+    """ Function to find the largest file matching a glob pattern.
+
+    Old SMAC version keep several versions of files as 'back-ups'. This
+    helper can be used to find the largest file (which should contain the
+    final output). One could also go for the most recent file, but that
+    might fail when the data is copied.
+
+    :param glob_pattern: a *NIX style pattern to apply
+    :type glob_pattern: string
+
+    :returns: string -- largest file matching the pattern 
+    """
+    fns = glob.glob(glob_pattern)
+
+    if len(fns) == 0:
+        raise RuntimeError("No file matching pattern \'{}\' found!".format(glob_pattern))
+
+    f_name = ""
+    f_size = -1
+
+    for fn in fns:
+        s = os.lstat(fn).st_size
+        if (s > f_size):
+            f_size = s
+            f_name = fn
+    return(f_name)
+
+
 def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn = "instances.txt" , feat_fn = "instance-features.txt" , ps_fn = "paramstrings-it*.txt"):    
     """ Helper function that can reads all information from a state_run folder.
     
@@ -35,9 +64,10 @@ def read_sate_run_folder(directory, rar_fn = "runs_and_results-it*.csv",inst_fn 
         actual run data returned by read_runs_and_results_file)
     """
     print(("reading {}".format(directory)))
-    configs = read_paramstrings_file(glob.glob(os.path.join(directory,ps_fn))[0])
-    instance_names = read_instances_file(glob.glob(os.path.join(directory,inst_fn))[0])
-    runs_and_results = read_runs_and_results_file(glob.glob(os.path.join(directory, rar_fn))[0])
+    configs = read_paramstrings_file(find_largest_file(os.path.join(directory,ps_fn)))
+    instance_names = read_instances_file(find_largest_file(os.path.join(directory,inst_fn)))
+    runs_and_results = read_runs_and_results_file(find_largest_file(os.path.join(directory, rar_fn)))
+
     full_feat_fn = glob.glob(os.path.join(directory,feat_fn))
     if len(full_feat_fn) == 1:      
         instance_features = read_instance_features_file(full_feat_fn[0])
@@ -107,6 +137,7 @@ def state_merge(state_run_directory_list, destination,
         for conf in confs:
             if not conf in configurations:
                 configurations[conf] = {'index': i_confs}
+                print("configurations contains now {} element".format(i_confs))
                 i_confs += 1
         # merge the instances
         ignored_instance_ids = []
@@ -130,21 +161,26 @@ def state_merge(state_run_directory_list, destination,
                 pass
         
         # store the feature file header:
-        ff_header.add(",".join(header_feats))
+        if header_feats is not None:
+            ff_header.add(",".join(header_feats))
         
-        if len(ff_header) != 1:
-            raise RuntimeError("Feature Files not consistent across runs!\n{}".format(header_feats))
+            if len(ff_header) != 1:
+                raise RuntimeError("Feature Files not consistent across runs!\n{}".format(header_feats))
         
         
         if len(rars.shape) == 1:
             rars = numpy.array([rars])
+
         for run in rars:
+            print(run)
             # get the local configuration and instance id
             lcid, liid = int(run[0])-1, int(run[1])-1
 
             if liid in ignored_instance_ids:
                 continue
 
+            print(liid,len(instances), lcid, len(configurations))
+            
             # translate them into the global ones
             gcid = configurations[confs[lcid]]['index']
             giid = instances[inst_names[liid][0]]['index']
