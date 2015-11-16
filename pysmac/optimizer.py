@@ -1,5 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
+import sys
 import tempfile
 import os
 import shutil
@@ -114,12 +115,15 @@ class SMAC_optimizer(object):
             'abort-on-first-run-crash': False,
             'overall_obj': 'MEAN',
             'scenario_fn': 'scenario.dat', # NOT a SMAC OPTION, but allows to
-                                          # change the standard name (used for 
+                                          # change the standard name (used
                                           # in Spysmac)
-            'java_executable': 'java'     # NOT a SMAC OPTION; allows to 
+            'java_executable': 'java',    # NOT a SMAC OPTION; allows to 
                                           # specify a different java
                                           # binary and can be abused to 
                                           # pass additional arguments to it
+            'timeout_quality':2.**127,    # not a SMAC option either
+                                          # custamize the quality reported
+                                          # to SMAC in case of a timeout
             }
         if debug:
             self.smac_options['console-log-level']='INFO'
@@ -243,8 +247,10 @@ class SMAC_optimizer(object):
                     fh.write("id_%i\n"%i)
 
         # make sure the java executable is callable and up-to-date
-        java_executable = self.smac_options.pop('java_executable');
+        java_executable = self.smac_options.pop('java_executable')
         check_java_version(java_executable)
+
+        timeout_quality = self.smac_options.pop('timeout_quality')
 
 
         # create and fill the scenario file
@@ -279,7 +285,7 @@ class SMAC_optimizer(object):
 
         # create a pool of workers and make'em work
         pool = MyPool(num_procs)
-        argument_lists = [[scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, smac_classpath(),  num_train_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic'], java_executable] for s in seed]
+        argument_lists = [[scenario_fn, additional_options_fn, s, func, parser_dict, self.__mem_limit_smac_mb, smac_classpath(),  num_train_instances, mem_limit_function_mb, t_limit_function_s, self.smac_options['algo-deterministic'], java_executable, timeout_quality] for s in seed]
         
         pool.map(pysmac.remote_smac.remote_smac_function, argument_lists)
         

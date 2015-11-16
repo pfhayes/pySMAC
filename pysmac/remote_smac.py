@@ -228,35 +228,19 @@ class remote_smac(object):
         self.__logger.debug("Our interpretation: %s"%config_dict)
         return (config_dict)
     
-    def report_result(self, value, runtime, status = b'CRASHED'):
+    def report_result(self, result_dict):
         """Method to report the latest run results back to SMAC.
         
         This method communicates the results from the last run back to SMAC.
         
-        :param value: If float, this is the quality value from the last configuration. If dictionary, the key values 'value', 'status', and 'runtime' are used.
-        :type value: float or dict
-        :param runtime: The total runtime of the particular run in seconds.
-        :type runtime: float
-        :param status: The status of the run. Allowed values are (UN)SAT, TIMEOUT, CRASH, ABORT. Consult the SMAC manual (Section 5.1.2) for further details.
-        :type status: str
+        :param result_dict: dictionary with the keys 'value', 'status', and 'runtime'.
+        :type result_dic: dict
         """
-        tmp ={'status': status, 'runtime': runtime}
-        
-        # value is only None, if the function call was unsuccessful
-        if value is None:
-            tmp['value'] = 0
-        # for fancy stuff, the function can return a dict with 'status',
-        # 'runtime',  and 'value' keys (does not have to provide all, though)
-        elif isinstance(value, dict):
-            tmp.update(value)
-        # in all other cases, it should be a float
-        else:
-            tmp['value'] = value
-        
+
         # for propper printing, we have to convert the status into unicode
-        tmp['status'] = tmp['status'].decode()
+        result_dict['status'] = result_dict['status'].decode()
         s = 'Result for SMAC: {0[status]}, {0[runtime]}, 0, {0[value]}, 0\
-            '.format(tmp)
+            '.format(result_dict)
         self.__logger.debug(s)
         self.__conn.sendall(s.encode())
         self.__conn.close();
@@ -278,7 +262,7 @@ def remote_smac_function(only_arg):
     try:
         scenario_file, additional_options_fn, seed, function, parser_dict,\
           memory_limit_smac_mb, class_path, num_instances, mem_limit_function,\
-          t_limit_function, deterministic, java_executable = only_arg
+          t_limit_function, deterministic, java_executable, timeout_quality = only_arg
     
         logger = multiprocessing.get_logger()
     
@@ -358,21 +342,30 @@ def remote_smac_function(only_arg):
             # if res['status'] exsists, it will be used in 'report_result'
             # if there was no return value, it has either crashed or timed out
             # for simple function, we just use 'SAT'
-            status = b'CRASHED' if res is None else b'SAT'
-            try:
-                # check if it recorded some runtime by itself and use that
-                if res['runtime'] > current_t_limit - 2e-2: # mini slack to account for limited precision of cputime measurement
-                    status=b'TIMEOUT'
-            except (AttributeError, TypeError, KeyError, IndexError):
-                # if not, we have to use our own time measurements here
-                if (res is None) and ((cpu_time > current_t_limit - 2e-2) or
-                                            (wall_time >= 10*current_t_limit)):
-                    status=b'TIMEOUT'
-            except:
-                # reraise in case something else went wrong
-                raise
 
-            smac.report_result(res, cpu_time, status)
+            result_dict = {
+                        'value' : timeout_quality,
+                        'status': b'CRASHED' if res is None else b'SAT',
+                        'runtime': cpu_time
+                        }
+
+            if res is not None:
+                if isinstance(res, dict):
+                    result_dict.update(res)
+                else:
+                    result_dict['value'] = res
+
+            # account for timeeouts
+            if not current_t_limit is None:
+                if ( (result_dict['runtime'] > current_t_limit-2e-2) or
+                        (wall_time >= 10*current_t_limit) ):
+                    result_dict['status']=b'TIMEOUT'
+
+            # set returned quality to default in case of a timeout
+            if result_dict['status'] == b'TIMEOUT':
+                result_dict['value'] = result_dict['value'] if timeout_quality is None else timeout_quality
+
+            smac.report_result(result_dict)
             num_iterations += 1
     except:
         traceback.print_exc() # to see the traceback of subprocesses

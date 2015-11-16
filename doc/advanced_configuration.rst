@@ -76,6 +76,11 @@ options:
     |                | a 32-bit data model if available. Use this if the system   |               |
     |                | wide command java is not the JRE you want pySMAC to use.   |               |
     +----------------+------------------------------------------------------------+---------------+
+    |timeout_quality | If the function call times out while you optimize the      |   2^127       |
+    |                | quality the value specified here will be assumed to be the |               |
+    |                | returned value.                                            |               |
+    +----------------+------------------------------------------------------------+---------------+
+
 
 Optimizing Runtime instead of Quality
 -------------------------------------
