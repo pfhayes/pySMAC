@@ -137,7 +137,6 @@ def state_merge(state_run_directory_list, destination,
         for conf in confs:
             if not conf in configurations:
                 configurations[conf] = {'index': i_confs}
-                print("configurations contains now {} element".format(i_confs))
                 i_confs += 1
         # merge the instances
         ignored_instance_ids = []
@@ -172,15 +171,12 @@ def state_merge(state_run_directory_list, destination,
             rars = numpy.array([rars])
 
         for run in rars:
-            print(run)
             # get the local configuration and instance id
             lcid, liid = int(run[0])-1, int(run[1])-1
 
             if liid in ignored_instance_ids:
                 continue
 
-            print(liid,len(instances), lcid, len(configurations))
-            
             # translate them into the global ones
             gcid = configurations[confs[lcid]]['index']
             giid = instances[inst_names[liid][0]]['index']
@@ -219,6 +215,7 @@ def state_merge(state_run_directory_list, destination,
         
         sorted_instances.sort()
         fh.write('\n'.join(map(operator.itemgetter(1), sorted_instances)))
+        fh.write('\n')
 
     with open(os.path.join(destination, 'runs_and_results-it0.csv'),'w') as fh:
         cumulative_runtime = 0.0
@@ -260,11 +257,12 @@ def state_merge(state_run_directory_list, destination,
             fh.write('\n')
 
     
-
-    if set(map(lambda a: ",".join(list(map(str,a['features']))),list(instances.values()))) != set([None]):
+    print(instances.values())
+    
+    
+    if header_feats is not None:
         with open(os.path.join(destination, 'instance-features.txt'),'w') as fh:
             fh.write("instance," + ff_header.pop())
-            #fh.write("\n")
             sorted_features = [(instances[inst]['index'], inst + ',' + ",".join(list(map(str, instances[inst]['features']))) ) for inst in instances]
             sorted_features.sort()
             fh.write('\n'.join([ t[1] for t in sorted_features]))

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'pysmac',
-    version = '0.9',
+    version = '0.9.1',
     packages = find_packages(),
     install_requires = ['docutils>=0.3', 'setuptools', 'numpy', 'matplotlib', 'pynisher'],
     author = "Stefan Falkner and Tobias Domhan (python wrapper). Frank Hutter, Holger Hoos, Kevin Leyton-Brown, Kevin Murphy and Steve Ramage (SMAC)",
