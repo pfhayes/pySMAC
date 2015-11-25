@@ -7,9 +7,10 @@ import re
 
 
 import numpy as np
-import matplotlib.pyplot as plt
-#import matplotlib.cm as pltcm
-#from matplotlib.widgets import CheckButtons
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    raise ImportError('pySMAC was not installed with analyzer support.')
 
 import sys
 sys.path.append('/home/sfalkner/repositories/github/pysmac/')
