@@ -4,7 +4,7 @@ setup(
     name = 'pysmac',
     version = '0.9.1',
     packages = find_packages(),
-    install_requires = ['docutils>=0.3', 'setuptools', 'numpy', 'matplotlib', 'pynisher'],
+    install_requires = ['docutils>=0.3', 'setuptools', 'numpy', 'pynisher'],
     author = "Stefan Falkner and Tobias Domhan (python wrapper). Frank Hutter, Holger Hoos, Kevin Leyton-Brown, Kevin Murphy and Steve Ramage (SMAC)",
     author_email = "sfalkner@informatik.uni-freiburg.de",
     description = "python interface to the hyperparameter optimization tool SMAC.",
